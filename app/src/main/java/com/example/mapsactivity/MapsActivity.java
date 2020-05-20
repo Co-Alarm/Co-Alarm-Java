@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment;
 import com.example.mapsactivity.R.id;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -169,18 +170,17 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         if (ActivityCompat.checkSelfPermission((Context)this, "android.permission.ACCESS_FINE_LOCATION") != 0) {
             ActivityCompat.requestPermissions((Activity)this, new String[]{"android.permission.ACCESS_FINE_LOCATION"}, 1);
         } else {
-            GoogleMap var10000 = this.map;
-            if (var10000 == null) {
+            if (map == null) {
                 Intrinsics.throwUninitializedPropertyAccessException("map");
             }
 
-            var10000.setMyLocationEnabled(true);
+            map.setMyLocationEnabled(true);
             FusedLocationProviderClient var1 = this.fusedLocationClient;
             if (var1 == null) {
                 Intrinsics.throwUninitializedPropertyAccessException("fusedLocationClient");
             }
 
-            var1.getLastLocation().addOnSuccessListener((Activity)this, (OnSuccessListener)(new OnSuccessListener() {
+            var1.getLastLocation().addOnSuccessListener((Activity)this, new OnSuccessListener() {
                 // $FF: synthetic method
                 // $FF: bridge method
                 public void onSuccess(Object var1) {
@@ -189,13 +189,13 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
                 public final void onSuccess(Location location) {
                     if (location != null) {
-                        MapsActivity.this.lastLocation = location;
+                        lastLocation = location;
                         LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        MapsActivity.access$getMap$p(MapsActivity.this).animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12.0F));
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12.0F));
                     }
 
                 }
-            }));
+            });
         }
     }
 
