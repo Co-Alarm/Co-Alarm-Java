@@ -1,6 +1,9 @@
 package com.example.mapsactivity;
 
 import android.location.Location;
+import android.os.Handler;
+import android.os.Looper;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -26,39 +29,58 @@ import okhttp3.ResponseBody;
 import okhttp3.Request.Builder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public final class NetworkController {
 
     String clientId = "uyuvw49pig";
     String clientSecret = "BOJCfcK5klMMoKOgtb1LUhwlpCOsxPXZepAAE0Kb";
 
-    public void fetchStore(Location location, List<StoresByGeo> geoList){
-        final String[] body = new String[1];
+    List<Store> fetchStore(Location location){
+        List<Store> storesByGeo = null;
         System.out.println("데이터를 가져오는 중...");
         String url = "https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1";
         String query = "/storesByGeo/json?lat=" + location.getLatitude() + "&lng=" + location.getLongitude() + "&m=1000";
         System.out.println("--------query---------\n" + url + query);
-        Request request = (new Request.Builder()).url(url + query).build();
-        OkHttpClient client = new OkHttpClient();
-        client.newCall(request).enqueue(new Callback() {
+
+        Request request = (new Request.Builder().url(url + query)).build();
+        new OkHttpClient().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 System.out.println("리퀘스트 실패");
             }
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                ResponseBody responseBody = response.body();
-                if(responseBody != null) body[0] = responseBody.toString();
-                Gson gson = (new GsonBuilder()).create();
-                JsonParser parser = new JsonParser();
-                JsonElement rootObj = parser.parse(String.valueOf(body[0])).getAsJsonObject().get("stores");
-                Type type = (new TypeToken() {
-                }).getType();
-                List<Store> storesByGeo = gson.fromJson(rootObj, type);
-                System.out.println("--------store[0]---------");
-                if(storesByGeo != null) System.out.println(storesByGeo.get(0).getName());
+            public void onResponse(@NotNull Call call, @NotNull final Response response) throws IOException {
+                final String body = response.body().string();
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try { ;
+                            Gson gson = (new GsonBuilder()).create();
+                            JsonParser parser = new JsonParser();
+                            JsonElement rootObj = parser.parse(body.toString())
+                                    .getAsJsonObject().get("stores");
+                            System.out.println("--------rootObj---------");
+                            System.out.println(rootObj.toString());
+                            // 여기까지 문제없음
+//                            Type type = (new TypeToken() {}).getType();
+                            List<Store> storesByGeo = gson.fromJson(rootObj, new TypeToken<List<Store>>(){}.getType());
+                            System.out.println("--------store[0]---------");
+                            if(storesByGeo != null)
+                                System.out.println(storesByGeo.get(0).getName());
+                            else {
+                                System.out.println("--------데이터 없음---------");
+                                System.out.println("--------데이터 없음---------");
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         });
+        return storesByGeo;
     }
 
     @Nullable
@@ -108,9 +130,7 @@ public final class NetworkController {
             }
 
             public void onFailure(@Nullable Call call, @Nullable IOException e) {
-                String var3 = "Failed to execute request";
-                boolean var4 = false;
-                System.out.println(var3);
+                System.out.println("Failed to execute request");
             }
         }));
 
