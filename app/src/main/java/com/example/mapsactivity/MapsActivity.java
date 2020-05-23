@@ -1,5 +1,6 @@
 package com.example.mapsactivity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -7,7 +8,9 @@ import android.graphics.Canvas;
 import android.graphics.Bitmap.Config;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -37,6 +40,8 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,23 +49,22 @@ import kotlin.TypeCastException;
 import kotlin.jvm.internal.Intrinsics;
 
 public final class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, OnMarkerClickListener {
-
+    private final static String TAG = "MapsActivity";
     private static GoogleMap map;
     private static NetworkController networkController;
     private static FusedLocationProviderClient fusedLocationClient;
     private static String inputtext = null;
     private static Location lastLocation;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_maps);
-        Fragment fragment = this.getSupportFragmentManager().findFragmentById(id.map);
+        Fragment fragment = this.getSupportFragmentManager().findFragmentById(R.id.map);
         if (fragment == null) {
             throw new TypeCastException("null cannot be cast to non-null type com.google.android.gms.maps.SupportMapFragment");
         } else {
             SupportMapFragment mapFragment = (SupportMapFragment)fragment;
-            mapFragment.getMapAsync((OnMapReadyCallback)this);
+            mapFragment.getMapAsync(this);
             fusedLocationClient = LocationServices.getFusedLocationProviderClient((Activity)this);
             Intrinsics.checkExpressionValueIsNotNull(fusedLocationClient, "LocationServices.getFuse…ationProviderClient(this)");
             Button searchbtn = (Button)this.findViewById(R.id.btn_search);
@@ -70,7 +74,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                     EditText entertext = (EditText)view.findViewById(id.entertext);
                     inputtext = entertext.getText().toString();
                     System.out.println("************************************" + inputtext);
-
                     networkController = new NetworkController();
                     Location searchedLocation = null;
                     try {
@@ -85,32 +88,48 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             }));
         }
     }
+    private void setUpMap() {
+        if (ActivityCompat.checkSelfPermission(this, "android.permission.ACCESS_FINE_LOCATION") != 0) {
+            ActivityCompat.requestPermissions(this, new String[]{"android.permission.ACCESS_FINE_LOCATION"}, 1);
+        }
+    }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        this.map = googleMap;
+    public void onMapReady(final GoogleMap googleMap) {
+        map = googleMap;
+        Log.e(TAG,"hi");
         map.getUiSettings().setZoomControlsEnabled(true);
         map.setOnMarkerClickListener(this);
-        //map.setUpMap();
+        setUpMap();
         map.setMyLocationEnabled(true);
-        FusedLocationProviderClient fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient((Activity)this);
-        fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
             @Override
-            public void onSuccess(Location location) {
-                if(location != null){
-                    MapsActivity.this.lastLocation = location;
-                    LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+            public void onSuccess(Location lastLocation) {
+                if(lastLocation != null){
+                    Log.e(TAG,"testingonSucceess");
+                    LatLng currentLatLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
                     map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
+                    NetworkController networkController = new NetworkController();
+                    List<Store> ls = null;
+                    try {
+                        ls = new fetchStore().execute(lastLocation).get();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if(ls == null) Log.e(TAG,"nulllllllllllll");
+                    placeMarkerOnMap(ls);
                 }
-//                networkController = NetworkController()
-//                networkController.fetchStore(lastLocation){storesByGeo :
-//                List<Store>? ->
-//                    placeMarkerOnMap(storesByGeo)}
+
+                if(lastLocation == null) {
+                    System.out.println("lastLocation is null");
+                }
+
             }
         });
     }
-
-    private final BitmapDescriptor bitmapDescriptorFromVector(Runnable context, int vectorResId) {
+    private BitmapDescriptor bitmapDescriptorFromVector(Runnable context, int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable((Context) context, vectorResId);
         if (vectorDrawable == null) {
             Intrinsics.throwNpe();
@@ -123,82 +142,46 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         Intrinsics.checkExpressionValueIsNotNull(var10000, "BitmapDescriptorFactory.fromBitmap(bitmap)");
         return var10000;
     }
-
-    private void placeMarkerOnMap(List storesByGeo ) {
+    private void placeMarkerOnMap(List<Store> storesByGeo) {
+        if(storesByGeo == null )Log.e(TAG,"thisisfucxingnull");
         if (storesByGeo != null) {
-            Iterator var3 = storesByGeo.iterator();
-            while(var3.hasNext())
-            {
-                final Store store = (Store)var3.next();
+            Log.e(TAG,"isnotnull");
+            for (final Store store : storesByGeo) {
                 final LatLng pinLocation = new LatLng(store.getLat(), store.getLng());
                 final String remain = store.getRemain_stat();
-                this.runOnUiThread((Runnable)(new Runnable() {
+                this.runOnUiThread(new Runnable() {
                     public final void run() {
-                        if (remain == "plenty"){
-                            map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
-                                    .position(pinLocation)
-                                    .title(store.getName())
-                                    .icon(bitmapDescriptorFromVector(this, R.drawable.ic_green)));
-                        }
-                        else if (remain == "some"){
-                            map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
-                                    .position(pinLocation)
-                                    .title(store.getName())
-                                    .icon(bitmapDescriptorFromVector(this, R.drawable.ic_yellow)));
-                        }
-                        else if (remain == "few"){
-                            map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
-                                    .position(pinLocation)
-                                    .title(store.getName())
-                                    .icon(bitmapDescriptorFromVector(this, R.drawable.ic_red)));
-                        }
-                        else
-                        {
-                            map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
-                                    .position(pinLocation)
-                                    .title(store.getName())
-                                    .icon(bitmapDescriptorFromVector(this, R.drawable.ic_gray)));
+                        switch (remain) {
+                            case "plenty":
+                                map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
+                                        .position(pinLocation)
+                                        .title(store.getName())
+                                        .icon(bitmapDescriptorFromVector(this, R.drawable.ic_green)));
+                                break;
+                            case "some":
+                                map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
+                                        .position(pinLocation)
+                                        .title(store.getName())
+                                        .icon(bitmapDescriptorFromVector(this, R.drawable.ic_yellow)));
+                                break;
+                            case "few":
+                                map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
+                                        .position(pinLocation)
+                                        .title(store.getName())
+                                        .icon(bitmapDescriptorFromVector(this, R.drawable.ic_red)));
+                                break;
+                            default:
+                                map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
+                                        .position(pinLocation)
+                                        .title(store.getName())
+                                        .icon(bitmapDescriptorFromVector(this, R.drawable.ic_gray)));
+                                break;
                         }
                     }
-                }));
+                });
             }
         }
     }
-
-    private final void setUpMap() {
-        if (ActivityCompat.checkSelfPermission((Context)this, "android.permission.ACCESS_FINE_LOCATION") != 0) {
-            ActivityCompat.requestPermissions((Activity)this, new String[]{"android.permission.ACCESS_FINE_LOCATION"}, 1);
-        } else {
-            GoogleMap var10000 = this.map;
-            if (var10000 == null) {
-                Intrinsics.throwUninitializedPropertyAccessException("map");
-            }
-
-            var10000.setMyLocationEnabled(true);
-            FusedLocationProviderClient var1 = this.fusedLocationClient;
-            if (var1 == null) {
-                Intrinsics.throwUninitializedPropertyAccessException("fusedLocationClient");
-            }
-
-            var1.getLastLocation().addOnSuccessListener((Activity)this, (OnSuccessListener)(new OnSuccessListener() {
-                // $FF: synthetic method
-                // $FF: bridge method
-                public void onSuccess(Object var1) {
-                    this.onSuccess((Location)var1);
-                }
-
-                public final void onSuccess(Location location) {
-                    if (location != null) {
-                        MapsActivity.this.lastLocation = location;
-                        LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        MapsActivity.access$getMap$p(MapsActivity.this).animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12.0F));
-                    }
-
-                }
-            }));
-        }
-    }
-
     @Override
     public boolean onMarkerClick(Marker marker) {
         return false;

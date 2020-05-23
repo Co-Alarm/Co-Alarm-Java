@@ -1,6 +1,7 @@
 package com.example.mapsactivity;
-
 import android.location.Location;
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -14,6 +15,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import kotlin.jvm.internal.Intrinsics;
 import okhttp3.Call;
@@ -26,75 +28,84 @@ import okhttp3.ResponseBody;
 import okhttp3.Request.Builder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
+import org.json.JSONException;
+import org.json.JSONObject;
 public final class NetworkController {
-
+    private static final String TAG = "NetworkController";
     String clientId = "uyuvw49pig";
     String clientSecret = "BOJCfcK5klMMoKOgtb1LUhwlpCOsxPXZepAAE0Kb";
 
-    public void fetchStore(Location location, List<StoresByGeo> geoList){
-        final String[] body = new String[1];
+    List<Store> storesByGeo = null;
+
+
+    List<Store> fetchstore(Location location){
+
         System.out.println("데이터를 가져오는 중...");
         String url = "https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1";
         String query = "/storesByGeo/json?lat=" + location.getLatitude() + "&lng=" + location.getLongitude() + "&m=1000";
         System.out.println("--------query---------\n" + url + query);
-        Request request = (new Request.Builder()).url(url + query).build();
-        OkHttpClient client = new OkHttpClient();
-        client.newCall(request).enqueue(new Callback() {
+        Request request = (new Request.Builder().url(url + query)).build();
+        new OkHttpClient().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 System.out.println("리퀘스트 실패");
             }
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                ResponseBody responseBody = response.body();
-                if(responseBody != null) body[0] = responseBody.toString();
-                Gson gson = (new GsonBuilder()).create();
-                JsonParser parser = new JsonParser();
-                JsonElement rootObj = parser.parse(String.valueOf(body[0])).getAsJsonObject().get("stores");
-                Type type = (new TypeToken() {
-                }).getType();
-                List<Store> storesByGeo = gson.fromJson(rootObj, type);
-                System.out.println("--------store[0]---------");
-                if(storesByGeo != null) System.out.println(storesByGeo.get(0).getName());
-            }
-        });
-    }
+            public void onResponse(@NotNull Call call, @NotNull final Response response) throws IOException {
+                final String body = response.body().string();
+                try {
+                    Gson gson = (new GsonBuilder()).create();
+                    JsonParser parser = new JsonParser();
+                    JsonElement rootObj = parser.parse(body)
+                            .getAsJsonObject().get("stores");
+                    System.out.println("--------rootObj---------");
+                    System.out.println(rootObj.toString());
+                    storesByGeo = gson.fromJson(rootObj, new TypeToken<List<Store>>(){}.getType());
+                    System.out.println("--------store[0]---------");
+                    if(storesByGeo != null){
+                        Log.e(TAG,storesByGeo.get(0).getName());
 
+                    }
+                    else {
+                        System.out.println("--------데이터 없음---------");
+                        System.out.println("--------데이터 없음---------");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+        });
+        return storesByGeo;
+    }
     @Nullable
     public final Location fetchGeocoding(@NotNull String address) throws UnsupportedEncodingException, MalformedURLException {
         final Location searchLocation = null;
         Intrinsics.checkParameterIsNotNull(address, "address");
         String text = URLEncoder.encode(address, "UTF-8");
-        boolean var4 = false;
         System.out.println(text);
         URL url = new URL("https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=" + text);
         Request request = new Builder().url(url)
-                                       .addHeader("X-NCP-APIGW-API-KEY-ID", this.clientId)
-                                       .addHeader("X-NCP-APIGW-API-KEY", this.clientSecret)
-                                       .method("GET", (RequestBody)null)
-                                       .build();
-
+                .addHeader("X-NCP-APIGW-API-KEY-ID", this.clientId)
+                .addHeader("X-NCP-APIGW-API-KEY", this.clientSecret)
+                .method("GET", null)
+                .build();
         OkHttpClient client = new OkHttpClient();
-        client.newCall(request).enqueue((Callback)(new Callback() {
+        client.newCall(request).enqueue(new Callback() {
             public void onResponse(@Nullable Call call, @Nullable Response response) throws IOException {
                 String body = response.body().string();
-
                 System.out.println("*********************");
                 System.out.println("*********************");
                 System.out.println("Success to execute request : " + body);
                 System.out.println("*********************");
                 System.out.println("*********************");
-
                 Gson gson = (new GsonBuilder()).create();
                 JsonParser parser = new JsonParser();
-
                 JsonElement rootObj = parser.parse(String.valueOf(body)).getAsJsonObject().get("addresses");
-
                 TypeToken<List<Address>> typeToken = new TypeToken<List<Address>>(){};
                 Type type = typeToken.getType();
                 ArrayList<Address> addresses = gson.fromJson(rootObj, type);
-
                 searchLocation.setLatitude(Double.valueOf(addresses.get(0).getX()));
                 searchLocation.setLongitude(Double.valueOf(addresses.get(0).getY()));
                 System.out.println("*********************");
@@ -106,14 +117,12 @@ public final class NetworkController {
                 System.out.println("*********************");
                 System.out.println("*********************");
             }
-
             public void onFailure(@Nullable Call call, @Nullable IOException e) {
                 String var3 = "Failed to execute request";
                 boolean var4 = false;
                 System.out.println(var3);
             }
-        }));
-
+        });
         return searchLocation;
     }
 }
