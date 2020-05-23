@@ -13,72 +13,124 @@ import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import kotlin.jvm.internal.Intrinsics;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 import okhttp3.Request.Builder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.json.JSONException;
-import org.json.JSONObject;
-public final class NetworkController {
+
+final class NetworkController {
+
     private static final String TAG = "NetworkController";
     String clientId = "uyuvw49pig";
     String clientSecret = "BOJCfcK5klMMoKOgtb1LUhwlpCOsxPXZepAAE0Kb";
 
-    List<Store> storesByGeo = null;
+//    List<Store> fetchStore(final Location location) throws IOException {
+//        List<Store> storesByGeo = null;
+//        System.out.println("데이터를 가져오는 중...");
+//        String url = "https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1";
+//        String query = "/storesByGeo/json?lat=" + location.getLatitude() + "&lng=" + location.getLongitude() + "&m=1000";
+//        System.out.println("--------query---------\n" + url + query);
+//        OkHttpClient client = new OkHttpClient();
+//        Request.Builder builder = new Request.Builder().url(url + query).get();
+//        Request request = builder.build();
+//        Response response = client.newCall(request).execute();
+//        if (response.isSuccessful()) {
+//            String body = response.body().string();
+//            Gson gson = (new GsonBuilder()).create();
+//            JsonParser parser = new JsonParser();
+//            JsonElement rootObj = parser.parse(body)
+//                    .getAsJsonObject().get("stores");
+//            System.out.println("--------rootObj---------");
+//            System.out.println(rootObj.toString());
+//            storesByGeo = gson.fromJson(rootObj, new TypeToken<List<Store>>() {
+//            }.getType());
+//            System.out.println("--------store[0]---------");
+//            if (storesByGeo != null) {
+//                Log.e(TAG, storesByGeo.get(0).getName());
+//            } else {
+//                System.out.println("--------데이터 없음---------");
+//                System.out.println("--------데이터 없음---------");
+//            }
+//        } else {
+//            Log.e(TAG, "failed");
+//        }
+//        return storesByGeo;
+//    }
+
+//    List<Store> fetchStore(final Location location) throws ExecutionException, InterruptedException {
+//        System.out.println("데이터를 가져오는 중...");
+//        String url = "https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1";
+//        String query = "/storesByGeo/json?lat=" + location.getLatitude() + "&lng=" + location.getLongitude() + "&m=1000";
+//        System.out.println("--------query---------\n" + url + query);
+//        final Request request = (new Request.Builder().url(url + query)).build();
+//        Callable<List<Store>> task = new Callable<List<Store>>() {
+//            @Override
+//            public List<Store> call() throws Exception {
+//                List<Store> storesByGeo = null;
+//                new OkHttpClient().newCall(request).enqueue(new Callback() {
+//                    @Override
+//                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+//                        System.out.println("리퀘스트 실패");
+//                    }
+//                    @Override
+//                    public void onResponse(@NotNull Call call, @NotNull final Response response) throws IOException {
+//                        final String body = response.body().string();
+//                        try {
+//                            Gson gson = (new GsonBuilder()).create();
+//                            JsonParser parser = new JsonParser();
+//                            JsonElement rootObj = parser.parse(body)
+//                                    .getAsJsonObject().get("stores");
+//                            System.out.println("--------rootObj---------");
+//                            System.out.println(rootObj.toString());
+//                            List<Store> storesByGeo = gson.fromJson(rootObj, new TypeToken<List<Store>>(){}.getType());
+//                            System.out.println("--------store[0]---------");
+//                            if(storesByGeo != null){
+//                                Log.e(TAG,storesByGeo.get(0).getName());
+//                            }
+//                            else {
+//                                System.out.println("--------데이터 없음---------");
+//                                System.out.println("--------데이터 없음---------");
+//                            }
+//                        }
+//                        catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//
+//                    }
+//                });
+//
+//            }
+//        };
+//        ExecutorService executorService = Executors.newSingleThreadExecutor();
+//        Future<List<Store>> future = executorService.submit(task);
+//        return future.get();
+//
+////        try {
+////            return futureResult;
+////            Log.e(TAG,"goingtoSuccess");
+////        } catch (Exception e) {
+////            Log.e(TAG,"catch");
+////        }
+//
+//    }
 
 
-    List<Store> fetchstore(Location location){
 
-        System.out.println("데이터를 가져오는 중...");
-        String url = "https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1";
-        String query = "/storesByGeo/json?lat=" + location.getLatitude() + "&lng=" + location.getLongitude() + "&m=1000";
-        System.out.println("--------query---------\n" + url + query);
-        Request request = (new Request.Builder().url(url + query)).build();
-        new OkHttpClient().newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println("리퀘스트 실패");
-            }
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull final Response response) throws IOException {
-                final String body = response.body().string();
-                try {
-                    Gson gson = (new GsonBuilder()).create();
-                    JsonParser parser = new JsonParser();
-                    JsonElement rootObj = parser.parse(body)
-                            .getAsJsonObject().get("stores");
-                    System.out.println("--------rootObj---------");
-                    System.out.println(rootObj.toString());
-                    storesByGeo = gson.fromJson(rootObj, new TypeToken<List<Store>>(){}.getType());
-                    System.out.println("--------store[0]---------");
-                    if(storesByGeo != null){
-                        Log.e(TAG,storesByGeo.get(0).getName());
-
-                    }
-                    else {
-                        System.out.println("--------데이터 없음---------");
-                        System.out.println("--------데이터 없음---------");
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-            }
-
-        });
-        return storesByGeo;
-    }
     @Nullable
     public final Location fetchGeocoding(@NotNull String address) throws UnsupportedEncodingException, MalformedURLException {
         final Location searchLocation = null;
