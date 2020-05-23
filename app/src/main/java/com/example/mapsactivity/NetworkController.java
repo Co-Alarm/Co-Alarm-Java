@@ -72,6 +72,7 @@ final class NetworkController {
 //        return storesByGeo;
 //    }
 
+    // 반환값이 List<Store> 매개변수 Location
 //    List<Store> fetchStore(final Location location) throws ExecutionException, InterruptedException {
 //        System.out.println("데이터를 가져오는 중...");
 //        String url = "https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1";
@@ -131,50 +132,51 @@ final class NetworkController {
 
 
 
-    @Nullable
-    public final Location fetchGeocoding(@NotNull String address) throws UnsupportedEncodingException, MalformedURLException {
-        final Location searchLocation = null;
-        Intrinsics.checkParameterIsNotNull(address, "address");
-        String text = URLEncoder.encode(address, "UTF-8");
-        System.out.println(text);
-        URL url = new URL("https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=" + text);
-        Request request = new Builder().url(url)
-                .addHeader("X-NCP-APIGW-API-KEY-ID", this.clientId)
-                .addHeader("X-NCP-APIGW-API-KEY", this.clientSecret)
-                .method("GET", null)
-                .build();
-        OkHttpClient client = new OkHttpClient();
-        client.newCall(request).enqueue(new Callback() {
-            public void onResponse(@Nullable Call call, @Nullable Response response) throws IOException {
-                String body = response.body().string();
-                System.out.println("*********************");
-                System.out.println("*********************");
-                System.out.println("Success to execute request : " + body);
-                System.out.println("*********************");
-                System.out.println("*********************");
-                Gson gson = (new GsonBuilder()).create();
-                JsonParser parser = new JsonParser();
-                JsonElement rootObj = parser.parse(String.valueOf(body)).getAsJsonObject().get("addresses");
-                TypeToken<List<Address>> typeToken = new TypeToken<List<Address>>(){};
-                Type type = typeToken.getType();
-                ArrayList<Address> addresses = gson.fromJson(rootObj, type);
-                searchLocation.setLatitude(Double.valueOf(addresses.get(0).getX()));
-                searchLocation.setLongitude(Double.valueOf(addresses.get(0).getY()));
-                System.out.println("*********************");
-                System.out.println("*********************");
-                if (addresses != null) {
-                    Address address = (Address) addresses.get(0);
-                    System.out.println(address);
-                }
-                System.out.println("*********************");
-                System.out.println("*********************");
-            }
-            public void onFailure(@Nullable Call call, @Nullable IOException e) {
-                String var3 = "Failed to execute request";
-                boolean var4 = false;
-                System.out.println(var3);
-            }
-        });
-        return searchLocation;
-    }
+    // 반환값이 Location 매가변수가 address
+//    @Nullable
+//    public final Location fetchGeocoding(@NotNull String address) throws UnsupportedEncodingException, MalformedURLException {
+//        final Location searchLocation = null;
+//        Intrinsics.checkParameterIsNotNull(address, "address");
+//        String text = URLEncoder.encode(address, "UTF-8");
+//        System.out.println(text);
+//        URL url = new URL("https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=" + text);
+//        Request request = new Builder().url(url)
+//                .addHeader("X-NCP-APIGW-API-KEY-ID", this.clientId)
+//                .addHeader("X-NCP-APIGW-API-KEY", this.clientSecret)
+//                .method("GET", null)
+//                .build();
+//        OkHttpClient client = new OkHttpClient();
+//        client.newCall(request).enqueue(new Callback() {
+//            public void onResponse(@Nullable Call call, @Nullable Response response) throws IOException {
+//                String body = response.body().string();
+//                System.out.println("*********************");
+//                System.out.println("*********************");
+//                System.out.println("Success to execute request : " + body);
+//                System.out.println("*********************");
+//                System.out.println("*********************");
+//                Gson gson = (new GsonBuilder()).create();
+//                JsonParser parser = new JsonParser();
+//                JsonElement rootObj = parser.parse(String.valueOf(body)).getAsJsonObject().get("addresses");
+//                TypeToken<List<Address>> typeToken = new TypeToken<List<Address>>(){};
+//                Type type = typeToken.getType();
+//                ArrayList<Address> addresses = gson.fromJson(rootObj, type);
+//                searchLocation.setLatitude(Double.valueOf(addresses.get(0).getX()));
+//                searchLocation.setLongitude(Double.valueOf(addresses.get(0).getY()));
+//                System.out.println("*********************");
+//                System.out.println("*********************");
+//                if (addresses != null) {
+//                    Address address = (Address) addresses.get(0);
+//                    System.out.println(address);
+//                }
+//                System.out.println("*********************");
+//                System.out.println("*********************");
+//            }
+//            public void onFailure(@Nullable Call call, @Nullable IOException e) {
+//                String var3 = "Failed to execute request";
+//                boolean var4 = false;
+//                System.out.println(var3);
+//            }
+//        });
+//        return searchLocation;
+//    }
 }

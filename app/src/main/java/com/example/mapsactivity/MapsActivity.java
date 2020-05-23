@@ -1,13 +1,11 @@
 package com.example.mapsactivity;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Bitmap.Config;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -35,13 +33,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -56,13 +51,16 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static String inputtext = null;
     private static Task<Location> lastLocation;
 
-    fetchtask tlqkf = new fetchtask();
+    StoreFetchTask fTask = new StoreFetchTask();
+    GeocodingFetchTask gTask = new GeocodingFetchTask();
     private static List<Store> temp;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_maps);
+        final EditText enterText = this.findViewById(R.id.entertext);
+        Button searchbtn = this.findViewById(R.id.btn_search);
         Fragment fragment = this.getSupportFragmentManager().findFragmentById(R.id.map);
         if (fragment == null) {
             throw new TypeCastException("null cannot be cast to non-null type com.google.android.gms.maps.SupportMapFragment");
@@ -72,21 +70,21 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
             Intrinsics.checkExpressionValueIsNotNull(fusedLocationClient, "LocationServices.getFuse…ationProviderClient(this)");
-            Button searchbtn = this.findViewById(id.btn_search);
+
             searchbtn.setOnClickListener(new OnClickListener() {
                 public final void onClick(View view) {
                     System.out.println("************************************");
-                    EditText entertext = view.findViewById(id.entertext);
-                    inputtext = entertext.getText().toString();
+                    inputtext = enterText.getText().toString();
                     System.out.println("************************************" + inputtext);
                     networkController = new NetworkController();
                     Location searchedLocation = null;
                     try {
-                        searchedLocation = networkController.fetchGeocoding(inputtext);
-                    } catch (UnsupportedEncodingException | MalformedURLException e) {
+                        searchedLocation = gTask.execute(inputtext).get();
+                    } catch (ExecutionException | InterruptedException e) {
                         e.printStackTrace();
                     }
                     System.out.println("fetchGeocoding 성...공?"+ searchedLocation.getLatitude() +" "+ searchedLocation.getLongitude());
+                    onLocationChanged(searchedLocation);
                 }
             });
         }
@@ -114,7 +112,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
                 List<Store> temp = null;
                 try {
-                    temp = tlqkf.execute(lastLocation).get();
+                    temp = fTask.execute(lastLocation).get();
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -176,6 +174,34 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             }
         }
     }
+
+    public void onLocationChanged(Location location) {
+        Log.e(TAG,"ChangedonSucceess");
+        StoreFetchTask storeFetchTask = new StoreFetchTask();
+
+        // 기존 맵 초기화
+        map.clear();
+
+        // 새로운 위치 객체 설정
+        LatLng changeLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        Location changeLocation = new Location("");
+        changeLocation.setLongitude(changeLatLng.longitude);
+        changeLocation.setLatitude(changeLatLng.latitude);
+
+        // 변경되는 위치로 이동
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(changeLatLng, 16f));
+
+        // JSON 파싱
+        List<Store> temp = null;
+        try {
+            temp = storeFetchTask.execute(changeLocation).get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        placeMarkerOnMap(temp);
+    }
+
     @Override
     public boolean onMarkerClick(Marker marker) {
         return false;
