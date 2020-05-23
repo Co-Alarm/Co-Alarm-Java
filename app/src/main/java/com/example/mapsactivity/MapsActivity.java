@@ -1,4 +1,5 @@
 package com.example.mapsactivity;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -6,11 +7,14 @@ import android.graphics.Canvas;
 import android.graphics.Bitmap.Config;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -29,54 +33,62 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+
 import org.jetbrains.annotations.Nullable;
-import kotlin.jvm.internal.Intrinsics;
+
 import kotlin.TypeCastException;
+import kotlin.jvm.internal.Intrinsics;
 
 public final class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, OnMarkerClickListener {
-
+    private final static String TAG = "MapsActivity";
     private static GoogleMap map;
     private static NetworkController networkController;
-    private static FusedLocationProviderClient fusedLocationClient;
+    public static FusedLocationProviderClient fusedLocationClient;
     private static String inputtext = null;
-    private static Location lastLocation;
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private static Task<Location> lastLocation;
 
+    fetchtask tlqkf = new fetchtask();
+    private static List<Store> temp;
+
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_maps);
-        networkController = new NetworkController();
         Fragment fragment = this.getSupportFragmentManager().findFragmentById(R.id.map);
         if (fragment == null) {
             throw new TypeCastException("null cannot be cast to non-null type com.google.android.gms.maps.SupportMapFragment");
         } else {
             SupportMapFragment mapFragment = (SupportMapFragment)fragment;
-            mapFragment.getMapAsync((OnMapReadyCallback)this);
+            mapFragment.getMapAsync(this);
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
             Intrinsics.checkExpressionValueIsNotNull(fusedLocationClient, "LocationServices.getFuse…ationProviderClient(this)");
-            Button searchbtn = (Button)this.findViewById(R.id.btn_search);
-            searchbtn.setOnClickListener((OnClickListener)(new OnClickListener() {
+            Button searchbtn = this.findViewById(id.btn_search);
+            searchbtn.setOnClickListener(new OnClickListener() {
                 public final void onClick(View view) {
                     System.out.println("************************************");
-                    EditText entertext = (EditText)view.findViewById(id.entertext);
+                    EditText entertext = view.findViewById(id.entertext);
                     inputtext = entertext.getText().toString();
                     System.out.println("************************************" + inputtext);
-
+                    networkController = new NetworkController();
                     Location searchedLocation = null;
                     try {
                         searchedLocation = networkController.fetchGeocoding(inputtext);
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    } catch (MalformedURLException e) {
+                    } catch (UnsupportedEncodingException | MalformedURLException e) {
                         e.printStackTrace();
                     }
                     System.out.println("fetchGeocoding 성...공?"+ searchedLocation.getLatitude() +" "+ searchedLocation.getLongitude());
                 }
-            }));
+            });
         }
     }
 
@@ -87,32 +99,31 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap) {
         map = googleMap;
+        Log.e(TAG,"hi");
         map.getUiSettings().setZoomControlsEnabled(true);
         map.setOnMarkerClickListener(this);
         setUpMap();
         map.setMyLocationEnabled(true);
-
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
             @Override
-            public void onSuccess(Location lastLocation) {
-                if(lastLocation != null){
-                    LatLng currentLatLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
+            public void onSuccess(final Location lastLocation) {
+                Log.e(TAG,"testingonSucceess");
+                LatLng currentLatLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
+                List<Store> temp = null;
+                try {
+                    temp = tlqkf.execute(lastLocation).get();
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
                 }
-                if(lastLocation == null) {
-                    System.out.println("lastLocation is null");
-                } else {
-                    System.out.println("lastLocation is what");
-                    placeMarkerOnMap(networkController.fetchStore(lastLocation));
-                }
+                placeMarkerOnMap(temp);
             }
         });
     }
-
-    private final BitmapDescriptor bitmapDescriptorFromVector(Runnable context, int vectorResId) {
-        Drawable vectorDrawable = ContextCompat.getDrawable((Context) context, vectorResId);
+    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
+        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
         if (vectorDrawable == null) {
             Intrinsics.throwNpe();
         }
@@ -124,49 +135,47 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         Intrinsics.checkExpressionValueIsNotNull(var10000, "BitmapDescriptorFactory.fromBitmap(bitmap)");
         return var10000;
     }
-
-    private void placeMarkerOnMap(List<Store> storesByGeo) {
+    void placeMarkerOnMap(List<Store> storesByGeo) {
+        if(storesByGeo == null )Log.e(TAG,"thisisfucxingnull");
         if (storesByGeo != null) {
-            System.out.println("-------------------");
-            System.out.println("placeMarkerOnMap");
-            System.out.println("-------------------");
+            Log.e(TAG,"isnotnull");
+            Log.e(TAG,"is: "+storesByGeo.get(0).getAddr());
             for (final Store store : storesByGeo) {
                 final LatLng pinLocation = new LatLng(store.getLat(), store.getLng());
                 final String remain = store.getRemain_stat();
-                this.runOnUiThread((Runnable) (new Runnable() {
+                this.runOnUiThread(new Runnable() {
                     public final void run() {
                         switch (remain) {
                             case "plenty":
                                 map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
                                         .position(pinLocation)
                                         .title(store.getName())
-                                        .icon(bitmapDescriptorFromVector(this, R.drawable.ic_green)));
+                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_green)));
                                 break;
                             case "some":
                                 map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
                                         .position(pinLocation)
                                         .title(store.getName())
-                                        .icon(bitmapDescriptorFromVector(this, R.drawable.ic_yellow)));
+                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_yellow)));
                                 break;
                             case "few":
                                 map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
                                         .position(pinLocation)
                                         .title(store.getName())
-                                        .icon(bitmapDescriptorFromVector(this, R.drawable.ic_red)));
+                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_red)));
                                 break;
                             default:
                                 map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
                                         .position(pinLocation)
                                         .title(store.getName())
-                                        .icon(bitmapDescriptorFromVector(this, R.drawable.ic_gray)));
+                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_gray)));
                                 break;
                         }
                     }
-                }));
+                });
             }
         }
     }
-
     @Override
     public boolean onMarkerClick(Marker marker) {
         return false;
