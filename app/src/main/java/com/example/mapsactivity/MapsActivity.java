@@ -13,10 +13,16 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -61,6 +67,11 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static Location currentLocation; //카메라 시점 현위치
     private static Location curLocation;
 
+    private EditText entertext;
+    private InputMethodManager imm;
+
+
+
 //    StoreFetchTask fTask = new StoreFetchTask();
 //    GeocodingFetchTask gTask = new GeocodingFetchTask();
 //    private static List<Store> temp;
@@ -100,16 +111,42 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             Intrinsics.checkExpressionValueIsNotNull(fusedLocationClient, "LocationServices.getFuse…ationProviderClient(this)");
 
-            Button searchbtn = findViewById(R.id.btn_search);
-            searchbtn.setOnClickListener(new OnClickListener() {
-                public final void onClick(View view) {
-                    System.out.println("************************************");
-                    EditText entertext = findViewById(R.id.entertext);
-                    inputtext = entertext.getText().toString();
-                    System.out.println("************************************" + inputtext);
-                    ExecutorService service = Executors.newSingleThreadExecutor();
-                    Future<Location> futurelc = service.submit(geocodingtask);
-                    try {
+            //세일세일세일세일세일세일세일세일
+
+            imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            entertext = findViewById(R.id.entertext);
+
+            //토글버튼 기능 ON/OFF
+            final ToggleButton tb2 =
+                    (ToggleButton) this.findViewById(R.id.btn_search2);
+            tb2.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(tb2.isChecked()) {
+                        entertext.setVisibility(View.VISIBLE);
+
+                    }
+                    else{
+                        entertext.setVisibility(View.INVISIBLE);
+
+                    } // end if
+                } // end onClick()
+            });
+
+            //
+            entertext.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    switch (actionId) {
+                        case EditorInfo.IME_ACTION_SEARCH:
+                            // 검색 동작
+                            System.out.println("************************************");
+
+                            inputtext = entertext.getText().toString();
+                            System.out.println("************************************" + inputtext);
+                            ExecutorService service = Executors.newSingleThreadExecutor();
+                            Future<Location> futurelc = service.submit(geocodingtask);
+                            try {
 
 //                        searchedLocation = gTask.execute(inputtext).get();
 //                    } catch (ExecutionException | InterruptedException e) {
@@ -118,20 +155,37 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 //                    System.out.println("fetchGeocoding 성...공?"+ searchedLocation.getLatitude() +" "+ searchedLocation.getLongitude());
 //                    onLocationChanged(searchedLocation);
 
-                        searchedLocation = futurelc.get();
-                        Future<List<Store>> futurels = service.submit(taskSearch);
-                        Log.e(TAG, "searchedLocation");
-                        LatLng currentLatLng = new LatLng(searchedLocation.getLatitude(), searchedLocation.getLongitude());
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
-                        map.clear();
-                        placeMarkerOnMap(futurels.get());
+                                searchedLocation = futurelc.get();
+                                Future<List<Store>> futurels = service.submit(taskSearch);
+                                Log.e(TAG, "searchedLocation");
+                                LatLng currentLatLng = new LatLng(searchedLocation.getLatitude(), searchedLocation.getLongitude());
+                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
+                                map.clear();
+                                placeMarkerOnMap(futurels.get());
 
-                        System.out.println("fetchGeocoding 성공: " + searchedLocation.getLatitude() + " " + searchedLocation.getLongitude());
-                    } catch (ExecutionException | InterruptedException e) {
-                        e.printStackTrace();
+                                System.out.println("fetchGeocoding 성공: " + searchedLocation.getLatitude() + " " + searchedLocation.getLongitude());
+
+                                //키보드 사라지는 기능 + Toast기능 + edittext 리셋 기능
+                                imm.hideSoftInputFromWindow(entertext.getWindowToken(), 0);
+                                Toast.makeText(getApplicationContext(), "\""+inputtext +"\""+" 검색결과입니다", Toast.LENGTH_LONG).show();
+                                entertext.setText("");
+                            } catch (ExecutionException | InterruptedException e) {
+                                e.printStackTrace();
+                            }
+
+
+                            break;
+                        default:
+                            // 기본 엔터키 동작
+                            return false;
                     }
+                    return true;
                 }
             });
+
+
+            //세일세일세일세일세일세일세일세일
+
         }
     }
 
@@ -145,7 +199,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 // check if enabled and if not send user to the GSP settings
 // Better solution would be to display a dialog and suggesting to
 // go to the settings
-        if (!enabled) {
+        if (!enabled)
+        {
             Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             startActivity(intent);
         }
