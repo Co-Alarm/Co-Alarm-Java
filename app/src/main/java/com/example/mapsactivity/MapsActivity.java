@@ -1,12 +1,17 @@
 package com.example.mapsactivity;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Bitmap.Config;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -17,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -50,9 +56,10 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static NetworkController networkController = new NetworkController();
     public FusedLocationProviderClient fusedLocationClient;
     private static String inputtext = null;
-    private static Location lastLocation;
+    private static Location lastLocation; // 가장 현위치
     private static Location searchedLocation;
-    private static Location currentLocation;
+    private static Location currentLocation; //카메라 시점 현위치
+    private static Location curLocation;
 
 //    StoreFetchTask fTask = new StoreFetchTask();
 //    GeocodingFetchTask gTask = new GeocodingFetchTask();
@@ -71,9 +78,10 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
     };
     Callable<Location> geocodingtask = new Callable<Location>() {
-        @Override @Nullable
+        @Override
+        @Nullable
         public Location call() throws Exception {
-            return networkController.fetchGeocoding(inputtext,lastLocation);
+            return networkController.fetchGeocoding(inputtext, lastLocation);
         }
     };
 
@@ -87,7 +95,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         if (fragment == null) {
             throw new TypeCastException("null cannot be cast to non-null type com.google.android.gms.maps.SupportMapFragment");
         } else {
-            SupportMapFragment mapFragment = (SupportMapFragment)fragment;
+            SupportMapFragment mapFragment = (SupportMapFragment) fragment;
             mapFragment.getMapAsync(this);
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             Intrinsics.checkExpressionValueIsNotNull(fusedLocationClient, "LocationServices.getFuse…ationProviderClient(this)");
@@ -112,11 +120,13 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
                         searchedLocation = futurelc.get();
                         Future<List<Store>> futurels = service.submit(taskSearch);
-                        Log.e(TAG,"searchedLocation");
+                        Log.e(TAG, "searchedLocation");
                         LatLng currentLatLng = new LatLng(searchedLocation.getLatitude(), searchedLocation.getLongitude());
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
+                        map.clear();
                         placeMarkerOnMap(futurels.get());
-                        System.out.println("fetchGeocoding 성공: "+ searchedLocation.getLatitude() +" "+ searchedLocation.getLongitude());
+
+                        System.out.println("fetchGeocoding 성공: " + searchedLocation.getLatitude() + " " + searchedLocation.getLongitude());
                     } catch (ExecutionException | InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -126,9 +136,27 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     private void setUpMap() {
+
+        //앱에게 위치권한 주는가 물어보는 부분
+        LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean enabled = service
+                .isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+// check if enabled and if not send user to the GSP settings
+// Better solution would be to display a dialog and suggesting to
+// go to the settings
+        if (!enabled) {
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
+        }
+
+        // 앱의 gps 기능 off상태면 on 하도록 설정으로 이동하는 부분
         if (ActivityCompat.checkSelfPermission(this, "android.permission.ACCESS_FINE_LOCATION") != 0) {
             ActivityCompat.requestPermissions(this, new String[]{"android.permission.ACCESS_FINE_LOCATION"}, 1);
         }
+        //현재 gps 위치 가져옴
+        curLocation = service.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
     }
 
     @Override
@@ -156,7 +184,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 StoreFetchTask storeFetchTask = new StoreFetchTask();
                 List<Store> temp = null;
                 try {
-                    temp = storeFetchTask.execute(lastLocation).get();
+                    temp = storeFetchTask.execute(curLocation).get();
+
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
