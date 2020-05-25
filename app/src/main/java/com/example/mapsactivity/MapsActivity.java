@@ -206,7 +206,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         });
     }
 
-    //현위치에서 재검색 버튼
+    //현위치에서 재검색 버튼 기능
     public void onClick_reset(View v){
         //이전 마커 지우기
         map.clear();
@@ -243,6 +243,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         Intrinsics.checkExpressionValueIsNotNull(var10000, "BitmapDescriptorFactory.fromBitmap(bitmap)");
         return var10000;
     }
+
+    //핀 찍는 기능
     void placeMarkerOnMap(List<Store> storesByGeo) {
         if(storesByGeo == null )Log.e(TAG,"thisisfucxingnull");
         if (storesByGeo != null) {
@@ -286,32 +288,33 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
-    public void onLocationChanged(Location location) {
-        Log.e(TAG,"ChangedonSucceess");
-        StoreFetchTask storeFetchTask = new StoreFetchTask();
-
-        // 기존 맵 초기화
-        map.clear();
-
-        // 새로운 위치 객체 설정
-        LatLng changeLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-
-        Location changeLocation = new Location("");
-        changeLocation.setLongitude(changeLatLng.longitude);
-        changeLocation.setLatitude(changeLatLng.latitude);
-
-        // 변경되는 위치로 이동
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(changeLatLng, 16f));
-
-        // JSON 파싱
-        List<Store> temp = null;
-        try {
-            temp = storeFetchTask.execute(changeLocation).get();
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        placeMarkerOnMap(temp);
-    }
+    //
+//    public void onLocationChanged(Location location) {
+//        Log.e(TAG,"ChangedonSucceess");
+//        StoreFetchTask storeFetchTask = new StoreFetchTask();
+//
+//        // 기존 맵 초기화
+//        map.clear();
+//
+//        // 새로운 위치 객체 설정
+//        LatLng changeLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+//
+//        Location changeLocation = new Location("");
+//        changeLocation.setLongitude(changeLatLng.longitude);
+//        changeLocation.setLatitude(changeLatLng.latitude);
+//
+//        // 변경되는 위치로 이동
+//        map.animateCamera(CameraUpdateFactory.newLatLngZoom(changeLatLng, 16f));
+//
+//        // JSON 파싱
+//        List<Store> temp = null;
+//        try {
+//            temp = storeFetchTask.execute(changeLocation).get();
+//        } catch (ExecutionException | InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        placeMarkerOnMap(temp);
+//    }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
