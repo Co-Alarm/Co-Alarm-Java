@@ -139,6 +139,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         map.setOnMarkerClickListener(this);
         setUpMap();
         map.setMyLocationEnabled(true);
+        map.getUiSettings().setCompassEnabled(false);
 //        map.getUiSettings().setMyLocationButtonEnabled(false);
 
         map.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener(){
