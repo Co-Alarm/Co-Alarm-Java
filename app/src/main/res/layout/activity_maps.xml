@@ -20,24 +20,19 @@
 <!--        android:layout_marginTop="30dp"-->
 <!--        android:background="@drawable/ic_aim" />-->
 
+    // 검색창
     <EditText
         android:id="@+id/entertext"
         android:layout_width="250dp"
         android:layout_height="40dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="11dp"
-        android:background="@color/white" />
+        android:layout_marginTop="55dp"
+        android:background="@color/white"
+        android:visibility="gone"
+        android:singleLine="true"
+        android:imeOptions="actionSearch"/>
 
-    <Button
-        android:id="@+id/btn_search"
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
-        android:layout_gravity="left"
-        android:layout_marginTop="20dp"
-        android:layout_marginLeft="20dp"
-        android:background="@drawable/ic_search"/>
-
+    //현위치 재검색 버튼
     <Button
         android:id="@+id/btn_reset"
         android:text="현위치에서 재검색"
@@ -46,5 +41,20 @@
         android:layout_width="150dp"
         android:layout_height="50dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="50dp" />
+        android:layout_marginTop="95dp" />
+
+    // 돋보기 검색 버튼
+    <ToggleButton
+        android:id="@+id/btn_search2"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="right"
+        android:textOn=""
+        android:textOff=""
+        android:layout_marginTop="60dp"
+        android:layout_marginRight="17dp"
+        android:background="@drawable/ic_search"
+        android:text="ToggleButton"/>
+
+
 </FrameLayout>
