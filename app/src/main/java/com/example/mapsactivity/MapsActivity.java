@@ -26,6 +26,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -54,6 +55,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static String inputtext = null;
     private static Location lastLocation;
     private static Location searchedLocation;
+
 //    StoreFetchTask fTask = new StoreFetchTask();
 //    GeocodingFetchTask gTask = new GeocodingFetchTask();
 //    private static List<Store> temp;
@@ -139,6 +141,52 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         map.setOnMarkerClickListener(this);
         setUpMap();
         map.setMyLocationEnabled(true);
+//        map.getUiSettings().setMyLocationButtonEnabled(false);
+
+        map.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener(){
+            @Override
+            public boolean onMyLocationButtonClick()
+            {
+//                View b = findViewById(R.id.btn_reset);
+//                b.setVisibility(View.GONE);
+
+                //이전 마커 지우기
+                map.clear();
+
+                map.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+                    @Override
+                    public void onCameraIdle() {
+                        //현재 카메라 중앙좌표
+                        CameraPosition test = map.getCameraPosition();
+
+                        //Location으로 변환
+                        Location cameraLocation = new Location("");
+                        cameraLocation.setLongitude(test.target.longitude);
+                        cameraLocation.setLatitude(test.target.latitude);
+
+                        // JSON 파싱, 마커생성
+                        StoreFetchTask storeFetchTask = new StoreFetchTask();
+                        List<Store> temp = null;
+                        try {
+                            temp = storeFetchTask.execute(cameraLocation).get();
+                        } catch (ExecutionException | InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        placeMarkerOnMap(temp);
+                    }
+                });
+                return false;
+            }
+        });
+
+//        map.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+//            @Override
+//            public void onCameraMove() {
+////                View b = findViewById(R.id.btn_reset);
+////                b.setVisibility(View.VISIBLE);
+//            }
+//        });
+
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(final Location lc) {
@@ -157,6 +205,31 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             }
         });
     }
+
+    //현위치에서 재검색 버튼
+    public void onClick_reset(View v){
+        //이전 마커 지우기
+        map.clear();
+
+        //현재 카메라 중앙좌표
+        CameraPosition test = map.getCameraPosition();
+
+        //Location으로 변환
+        Location cameraLocation = new Location("");
+        cameraLocation.setLongitude(test.target.longitude);
+        cameraLocation.setLatitude(test.target.latitude);
+
+        // JSON 파싱, 마커생성
+        StoreFetchTask storeFetchTask = new StoreFetchTask();
+        List<Store> temp = null;
+        try {
+            temp = storeFetchTask.execute(cameraLocation).get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        placeMarkerOnMap(temp);
+    }
+
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
         if (vectorDrawable == null) {
