@@ -230,6 +230,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         placeMarkerOnMap(temp);
     }
 
+    //사용자 sgv파일 이용하기 위한 메소드
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
         if (vectorDrawable == null) {
@@ -288,7 +289,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
-    //
+    //onclick_reset이랑 같은 기능을 하는 것 같아서 주석처리
 //    public void onLocationChanged(Location location) {
 //        Log.e(TAG,"ChangedonSucceess");
 //        StoreFetchTask storeFetchTask = new StoreFetchTask();
