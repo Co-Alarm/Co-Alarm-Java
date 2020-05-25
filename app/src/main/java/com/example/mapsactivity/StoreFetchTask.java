@@ -2,11 +2,8 @@ package com.example.mapsactivity;
 
 import android.location.Location;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.util.Log;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -20,10 +17,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static com.example.mapsactivity.MapsActivity.fusedLocationClient;
-
-public class fetchtask extends AsyncTask<Location,Void, List<Store>> {
-    private final static String TAG = "fetchtask";
+public class StoreFetchTask extends AsyncTask<Location,Void, List<Store>> {
+    private final static String TAG = "StoreFetchTask";
 
     private static List<Store> storesByGeo = null;
 
@@ -73,9 +68,8 @@ public class fetchtask extends AsyncTask<Location,Void, List<Store>> {
         return storesByGeo;
     }
 
-//    @Override
-//    protected void onPostExecute(List<Store> stores) {
-//        getStoresByGeo(stores);
-//    }
-//    private List<Store> getStoresByGeo(List<Store> storeList){return storeList;}
+    @Override
+    protected void onCancelled() {
+        super.onCancelled();
+    }
 }
