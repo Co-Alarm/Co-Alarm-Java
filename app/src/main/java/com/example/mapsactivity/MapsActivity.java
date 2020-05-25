@@ -31,13 +31,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
+
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -55,6 +52,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static String inputtext = null;
     private static Location lastLocation;
     private static Location searchedLocation;
+    private static Location currentLocation;
 
 //    StoreFetchTask fTask = new StoreFetchTask();
 //    GeocodingFetchTask gTask = new GeocodingFetchTask();
@@ -153,29 +151,32 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 //이전 마커 지우기
                 map.clear();
 
-                map.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
-                    @Override
-                    public void onCameraIdle() {
-                        //현재 카메라 중앙좌표
-                        CameraPosition test = map.getCameraPosition();
+                // JSON 파싱, 마커생성
+                StoreFetchTask storeFetchTask = new StoreFetchTask();
+                List<Store> temp = null;
+                try {
+                    temp = storeFetchTask.execute(lastLocation).get();
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+                placeMarkerOnMap(temp);
 
-                        //Location으로 변환
-                        Location cameraLocation = new Location("");
-                        cameraLocation.setLongitude(test.target.longitude);
-                        cameraLocation.setLatitude(test.target.latitude);
-
-                        // JSON 파싱, 마커생성
-                        StoreFetchTask storeFetchTask = new StoreFetchTask();
-                        List<Store> temp = null;
-                        try {
-                            temp = storeFetchTask.execute(cameraLocation).get();
-                        } catch (ExecutionException | InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        placeMarkerOnMap(temp);
-                    }
-                });
                 return false;
+            }
+        });
+
+        map.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+            @Override
+            public void onCameraIdle() {
+                //현재 카메라 중앙좌표
+                CameraPosition test = map.getCameraPosition();
+
+                //Location으로 변환
+                Location cameraLocation = new Location("");
+                cameraLocation.setLongitude(test.target.longitude);
+                cameraLocation.setLatitude(test.target.latitude);
+
+                currentLocation = cameraLocation;
             }
         });
 
@@ -211,19 +212,11 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         //이전 마커 지우기
         map.clear();
 
-        //현재 카메라 중앙좌표
-        CameraPosition test = map.getCameraPosition();
-
-        //Location으로 변환
-        Location cameraLocation = new Location("");
-        cameraLocation.setLongitude(test.target.longitude);
-        cameraLocation.setLatitude(test.target.latitude);
-
         // JSON 파싱, 마커생성
         StoreFetchTask storeFetchTask = new StoreFetchTask();
         List<Store> temp = null;
         try {
-            temp = storeFetchTask.execute(cameraLocation).get();
+            temp = storeFetchTask.execute(currentLocation).get();
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
