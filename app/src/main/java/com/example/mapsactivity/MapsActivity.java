@@ -20,6 +20,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -31,6 +32,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -212,6 +214,10 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         //현재 gps 위치 가져옴
         curLocation = service.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
+//        //gps값이 안받아와졌을 때, 네트워크좌표로 대체
+//        if(curLocation != null){
+//            curLocation = service.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+//        }
     }
 
     @Override
@@ -223,7 +229,9 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         setUpMap();
         map.setMyLocationEnabled(true);
         map.getUiSettings().setCompassEnabled(false);
-//        map.getUiSettings().setMyLocationButtonEnabled(false);
+        map.getUiSettings().setMyLocationButtonEnabled(false);
+        map.getUiSettings().setZoomControlsEnabled(false);
+
 
         map.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener(){
             @Override
@@ -290,6 +298,24 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 }
             }
         });
+    }
+
+    public void onClick_gps(View v){
+        map.clear();
+        LatLng latLng = new LatLng(curLocation.getLatitude(), curLocation.getLongitude());
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 18);
+        map.animateCamera(cameraUpdate);
+
+        // JSON 파싱, 마커생성
+        StoreFetchTask storeFetchTask = new StoreFetchTask();
+        List<Store> temp = null;
+        try {
+            temp = storeFetchTask.execute(curLocation).get();
+
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        placeMarkerOnMap(temp);
     }
 
     //현위치에서 재검색 버튼 기능
