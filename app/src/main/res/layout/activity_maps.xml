@@ -21,7 +21,7 @@
         android:layout_marginTop="32dp"
         android:background="@drawable/ic_aim" />
 
-    // 검색창
+<!--    // 검색창-->
     <EditText
         android:id="@+id/entertext"
         android:layout_width="250dp"
@@ -33,7 +33,7 @@
         android:singleLine="true"
         android:imeOptions="actionSearch"/>
 
-    //현위치 재검색 버튼
+<!--    //현위치 재검색 버튼-->
     <Button
         android:id="@+id/btn_reset"
         android:text="현위치에서 재검색"
@@ -44,8 +44,7 @@
         android:layout_gravity="center_horizontal|bottom"
         android:layout_marginBottom="50dp" />
 
-    // 돋보기 검색 버튼
-
+<!--    // 돋보기 검색 버튼-->
     <ToggleButton
         android:id="@+id/btn_search2"
         android:layout_width="23dp"
@@ -58,15 +57,25 @@
         android:textOff=""
         android:textOn="" />
 
-    //도움말 버튼
-    <ImageView
-        android:id="@+id/imgHelp"
-        android:onClick="onClick_help"
+<!--    //도움말 버튼-->
+    <ToggleButton
+        android:id="@+id/btn_help"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_gravity="bottom|right"
         android:layout_marginRight="30dp"
         android:layout_marginBottom="60dp"
-        android:background="@drawable/ic_aim" />
+        android:background="@drawable/ic_aim"
+        android:textOff=""
+        android:textOn=""/>
+
+    <ImageView
+        android:id="@+id/imgNotice"
+        android:onClick="onClick_notice"
+        android:visibility="invisible"
+        android:layout_width="330dp"
+        android:layout_height="270dp"
+        android:layout_gravity="center"
+        android:background="@drawable/img_help" />
 
 </FrameLayout>

@@ -71,6 +71,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
     private EditText entertext;
     private InputMethodManager imm;
+    private ImageView imgNotice;
 
 
 
@@ -131,6 +132,22 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                     else{
                         entertext.setVisibility(View.INVISIBLE);
 
+                    } // end if
+                } // end onClick()
+            });
+
+            imgNotice = findViewById(R.id.imgNotice);
+
+            final ToggleButton tb3 =
+                    (ToggleButton) this.findViewById(R.id.btn_help);
+            tb3.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(tb3.isChecked()) {
+                        imgNotice.setVisibility(View.VISIBLE);
+                    }
+                    else{
+                        imgNotice.setVisibility(View.INVISIBLE);
                     } // end if
                 } // end onClick()
             });
@@ -332,6 +349,10 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             e.printStackTrace();
         }
         placeMarkerOnMap(temp);
+    }
+
+    public void onClick_notice(View v){
+
     }
 
     //사용자 sgv파일 이용하기 위한 메소드
