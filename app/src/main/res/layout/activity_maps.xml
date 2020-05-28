@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
     <fragment xmlns:map="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
@@ -11,22 +11,23 @@
         android:layout_height="match_parent"
         tools:context=".MapsActivity" />
 
-<!--    <Button-->
-<!--        android:id="@+id/btn_gps"-->
-<!--        android:layout_width="30dp"-->
-<!--        android:layout_height="30dp"-->
-<!--        android:layout_gravity="left"-->
-<!--        android:layout_marginLeft="30dp"-->
-<!--        android:layout_marginTop="30dp"-->
-<!--        android:background="@drawable/ic_aim" />-->
+    <ImageView
+        android:id="@+id/imgGps"
+        android:onClick="onClick_gps"
+        android:layout_width="23dp"
+        android:layout_height="23dp"
+        android:layout_gravity="top|left"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/ic_aim" />
 
     // 검색창
     <EditText
         android:id="@+id/entertext"
         android:layout_width="250dp"
         android:layout_height="40dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="55dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="23dp"
         android:background="@color/white"
         android:visibility="gone"
         android:singleLine="true"
@@ -40,21 +41,32 @@
         android:onClick="onClick_reset"
         android:layout_width="150dp"
         android:layout_height="50dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="95dp" />
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="50dp" />
 
     // 돋보기 검색 버튼
+
     <ToggleButton
         android:id="@+id/btn_search2"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_gravity="right"
-        android:textOn=""
-        android:textOff=""
-        android:layout_marginTop="60dp"
-        android:layout_marginRight="17dp"
+        android:layout_width="23dp"
+        android:layout_height="23dp"
+        android:layout_gravity="top|right"
+        android:layout_marginTop="32dp"
+        android:layout_marginRight="20dp"
         android:background="@drawable/ic_search"
-        android:text="ToggleButton"/>
+        android:text="ToggleButton"
+        android:textOff=""
+        android:textOn="" />
 
+    //도움말 버튼
+    <ImageView
+        android:id="@+id/imgHelp"
+        android:onClick="onClick_help"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="bottom|right"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="60dp"
+        android:background="@drawable/ic_aim" />
 
 </FrameLayout>
