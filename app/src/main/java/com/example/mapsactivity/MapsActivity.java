@@ -13,9 +13,12 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.util.TimeUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -52,6 +55,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -126,11 +130,10 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 @Override
                 public void onClick(View v) {
                     if(tb2.isChecked()) {
-                        entertext.setVisibility(View.VISIBLE);
-
+                        anim(entertext);
                     }
                     else{
-                        entertext.setVisibility(View.INVISIBLE);
+                        anim(entertext);
 
                     } // end if
                 } // end onClick()
@@ -144,10 +147,10 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 @Override
                 public void onClick(View v) {
                     if(tb3.isChecked()) {
-                        imgNotice.setVisibility(View.VISIBLE);
+                        anim(imgNotice);
                     }
                     else{
-                        imgNotice.setVisibility(View.INVISIBLE);
+                        anim(imgNotice);
                     } // end if
                 } // end onClick()
             });
@@ -411,6 +414,33 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                     }
                 });
             }
+        }
+    }
+
+    // 애니메이션 메소드
+    public void anim (View v)
+    {
+        if(v.getVisibility() == v.GONE) {
+            v.setAlpha(0.0f);
+            v.setVisibility(View.VISIBLE);
+            v.animate().alpha(1.0f).setDuration(600);
+        }
+        else
+        {
+            v.animate().alpha(0.0f).setDuration(600);
+            v.setVisibility(View.GONE);
+        }
+
+    }
+
+    public static void wait(int ms){
+        try
+        {
+            Thread.sleep(ms);
+        }
+        catch(InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
         }
     }
 
