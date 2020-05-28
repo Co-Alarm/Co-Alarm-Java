@@ -2,6 +2,7 @@ package com.example.mapsactivity;
 
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -37,9 +38,9 @@ public class MarkerItemAdapter implements GoogleMap.InfoWindowAdapter {
 
     @Override
     public View getInfoWindow(Marker marker) {
-        TextView tvStoreName = (TextView)markerView.findViewById(R.id.tvStoreName);
-        TextView tvStoreStock = (TextView)markerView.findViewById(R.id.tvStoreStock);
-        Button tvStar = (Button)markerView.findViewById(R.id.tvStar);
+        TextView tvStoreName = markerView.findViewById(R.id.tvStoreName);
+        TextView tvStoreStock = markerView.findViewById(R.id.tvStoreStock);
+        Button tvStar = markerView.findViewById(R.id.tvStar);
 
         tvStoreName.setText(storeName);
         tvStoreStock.setText(storeStock);

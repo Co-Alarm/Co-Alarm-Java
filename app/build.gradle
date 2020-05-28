@@ -35,6 +35,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.2.0'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
@@ -46,4 +47,7 @@ dependencies {
     //내가 추가한 것
     implementation 'com.squareup.okhttp3:okhttp:3.12.1'
     implementation 'com.google.code.gson:gson:2.8.5'
+    //recyclerview 사용 권한 허가
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 }
