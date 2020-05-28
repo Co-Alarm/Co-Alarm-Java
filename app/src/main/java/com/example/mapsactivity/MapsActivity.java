@@ -12,17 +12,14 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.Layout;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -34,7 +31,6 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -167,7 +163,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                                 LatLng currentLatLng = new LatLng(searchedLocation.getLatitude(), searchedLocation.getLongitude());
                                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
                                 map.clear();
-                                placeMarkerOnMap(map, futurels.get());
+                                placeMarkerOnMap(futurels.get());
 
                                 System.out.println("fetchGeocoding 성공: " + searchedLocation.getLatitude() + " " + searchedLocation.getLongitude());
 
@@ -218,10 +214,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         //현재 gps 위치 가져옴
         curLocation = service.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-//        //gps값이 안받아와졌을 때, 네트워크좌표로 대체
-//        if(curLocation != null){
-//            curLocation = service.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-//        }
     }
 
     @Override
@@ -447,4 +439,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 //        placeMarkerOnMap(temp);
 //    }
 
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        return false;
+    }
 }
