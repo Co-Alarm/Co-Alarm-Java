@@ -37,19 +37,6 @@
         android:imeOptions="actionSearch"/>
 
 
-    <!--&lt;!&ndash;    // 돋보기 검색 버튼&ndash;&gt;-->
-<!--    <ToggleButton-->
-<!--        android:id="@+id/btn_search2"-->
-<!--        android:layout_width="23dp"-->
-<!--        android:layout_height="23dp"-->
-<!--        android:layout_gravity="top|right"-->
-<!--        android:layout_marginTop="32dp"-->
-<!--        android:layout_marginRight="20dp"-->
-<!--        android:background="@drawable/ic_search"-->
-<!--        android:text="ToggleButton"-->
-<!--        android:textOff=""-->
-<!--        android:textOn="" />-->
-
     <!--    //현위치 재검색 버튼 -->
     <Button
         android:id="@+id/btn_reset"
@@ -64,17 +51,6 @@
         android:textColor="#FFFFFF"
         android:visibility="visible" />
 
-<!--    &lt;!&ndash;    물음표 그림 &ndash;&gt;-->
-<!--    <ToggleButton-->
-<!--        android:id="@+id/btn_help"-->
-<!--        android:layout_width="40dp"-->
-<!--        android:layout_height="40dp"-->
-<!--        android:layout_gravity="bottom|right"-->
-<!--        android:layout_marginRight="30dp"-->
-<!--        android:layout_marginBottom="60dp"-->
-<!--        android:background="@drawable/btn_help"-->
-<!--        android:textOff=""-->
-<!--        android:textOn=""/>-->
 
     <!--    공적마스크 정보(이미지) -->
     <ImageView
@@ -87,17 +63,6 @@
         android:layout_gravity="center"
         android:background="@drawable/img_help" />
 
-<!--    &lt;!&ndash;    스타 그림 &ndash;&gt;-->
-<!--    <ToggleButton-->
-<!--        android:id="@+id/btn_star"-->
-<!--        android:layout_width="40dp"-->
-<!--        android:layout_height="40dp"-->
-<!--        android:layout_gravity="bottom|right"-->
-<!--        android:layout_marginRight="30dp"-->
-<!--        android:layout_marginBottom="120dp"-->
-<!--        android:background="@drawable/btn_star"-->
-<!--        android:textOff=""-->
-<!--        android:textOn=""/>-->
 
 
 </FrameLayout>

@@ -30,7 +30,7 @@
             android:layout_weight="1"
             android:paddingBottom="10dp"
             android:background="#FFFFFF"
-            android:layout_marginRight="-270dp"
+            android:layout_marginRight="0dp"
             android:id="@+id/menu_bar">
 
             <!--    메뉴바 -->
