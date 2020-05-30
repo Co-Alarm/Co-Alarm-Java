@@ -189,7 +189,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             SharedPreferences.Editor editor = pref.edit();
             editor.putBoolean("checkFirst", true);
             editor.commit();
-
             Intent intent = new Intent(MapsActivity.this, TutorialActivity.class);
             startActivity(intent);
             finish();
