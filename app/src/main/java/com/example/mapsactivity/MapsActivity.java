@@ -1,9 +1,7 @@
 package com.example.mapsactivity;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Bitmap.Config;
@@ -11,7 +9,6 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -29,6 +26,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -46,8 +46,9 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -69,11 +70,19 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static Location searchedLocation;
     private static Location currentLocation; //카메라 시점 현위치
     private static Location curLocation;
+    private ArrayList<Marker> markerList;
 
     public static Context mContext = null;
     private EditText entertext;
     private InputMethodManager imm;
     private static View markerView;
+
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    RecyclerView mRecyclerView = null ;
+    List<FStore> mStore = Collections.emptyList();
+    RecyclerAdapter mAdapter = new RecyclerAdapter(mStore);
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 
 //    StoreFetchTask fTask = new StoreFetchTask();
 //    GeocodingFetchTask gTask = new GeocodingFetchTask();
@@ -127,11 +136,9 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 public void onClick(View v) {
                     if(tb2.isChecked()) {
                         entertext.setVisibility(View.VISIBLE);
-
                     }
                     else{
                         entertext.setVisibility(View.INVISIBLE);
-
                     } // end if
                 } // end onClick()
             });
@@ -180,6 +187,34 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
 
             //세일세일세일세일세일세일세일세일
+
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            mRecyclerView = findViewById(R.id.recyclerview) ;
+            mRecyclerView.setAdapter(mAdapter);
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(this)) ;
+            Button fvb = findViewById(R.id.Favorites);
+            fvb.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) { //map의 북마크 버튼 클릭하면 목록 visibility = true;
+                    if(mRecyclerView.getVisibility() == View.VISIBLE) mRecyclerView.setVisibility(View.INVISIBLE);
+                    else mRecyclerView.setVisibility(View.GONE);
+                }
+            });
+            final SwipeRefreshLayout swipeRefreshLayout= findViewById(R.id.swipe_refresh_layout);
+            swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    for(FStore fStore: mStore){
+                        if(!fStore.getFavorites()){
+                            mStore.remove(fStore);
+                            Log.e(TAG,"refresing FV: "+fStore.name);
+                        }
+                    }
+                    //새로 recyclerview를 업데이트해야되는지?
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+            });
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         }
     }
@@ -396,6 +431,41 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 return "0~1개";
         }
     }
+
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //markerview의 북마크 버튼 클릭시 실행
+    public void addFV_Store(Store store){
+        FStore fStore = new FStore();
+        fStore.setAddr(store.addr);
+        fStore.setCode(store.code);
+        fStore.setName(store.name);
+        fStore.setFavorites(true);
+        Log.e(TAG,"addFV:"+store.name);
+
+        mStore.add(fStore);
+    }
+
+    //marckerview에 북마크가 이미 클릭되어 있는 상태에서 클릭되면 실행
+    public void deleteFV_Store(Store store){
+        String code = store.code;
+
+        for(FStore fStore: mStore){
+            if(fStore.getCode().equals(code)){
+                mStore.remove(fStore);
+                Log.e(TAG,"deleteFV: "+store.name);
+                break;
+            }
+        }
+        Log.e(TAG,"if no logcat, no delete");
+    }
+
+    //recyclerview에서 북마크 버튼을 클릭하면 실행
+//    public void deleteFV_FS(FStore fStore){
+//        mStore.remove(fStore);
+//        Log.e(TAG,"deleteFV: "+fStore.name);
+//    }
+    // >>>>>>>>Adapter에서 실행하게 변경함: 삭제해도 ㄱㅊ
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     @Override
     public boolean onMarkerClick(Marker marker) {
