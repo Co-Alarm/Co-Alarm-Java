@@ -324,20 +324,24 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
     public void onClick_gps(View v){
         map.clear();
-        LatLng latLng = new LatLng(curLocation.getLatitude(), curLocation.getLongitude());
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16);
-        map.animateCamera(cameraUpdate);
-
-        // JSON 파싱, 마커생성
-        StoreFetchTask storeFetchTask = new StoreFetchTask();
-        List<Store> temp = null;
-        try {
-            temp = storeFetchTask.execute(curLocation).get();
-
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        placeMarkerOnMap(temp);
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                lastLocation = location;
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16);
+                map.animateCamera(cameraUpdate);
+                // JSON 파싱, 마커생성
+                StoreFetchTask storeFetchTask = new StoreFetchTask();
+                List<Store> temp = null;
+                try {
+                    temp = storeFetchTask.execute(location).get();
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+                placeMarkerOnMap(temp);
+            }
+        });
     }
 
     //현위치에서 재검색 버튼 기능
