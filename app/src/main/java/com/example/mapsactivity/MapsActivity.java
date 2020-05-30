@@ -120,17 +120,17 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         this.setContentView(R.layout.activity_maps);
         final EditText enterText = this.findViewById(R.id.entertext);
 
-
-        layout1 = (LinearLayout) findViewById(R.id.menu_bar);
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                /*변경하고 싶은 레이아웃의 파라미터 값을 가져 옴*/
-                LinearLayout.LayoutParams plControl = (LinearLayout.LayoutParams) layout1.getLayoutParams();
-
-            }
-        });
+// 세일 주석처리 
+//        layout1 = (LinearLayout) findViewById(R.id.menu_bar);
+//
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                /*변경하고 싶은 레이아웃의 파라미터 값을 가져 옴*/
+//                LinearLayout.LayoutParams plControl = (LinearLayout.LayoutParams) layout1.getLayoutParams();
+//
+//            }
+//        });
 
         Fragment fragment = this.getSupportFragmentManager().findFragmentById(R.id.map);
         if (fragment == null) {
