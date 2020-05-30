@@ -2,6 +2,7 @@ package com.example.mapsactivity;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -17,22 +18,22 @@ public class PreferenceManager {
 
     private static final String KEY = "mStore";
 
-    static SharedPreferences getPreferences(Context context) {
+    private static SharedPreferences getPreferences(Context context) {
         return context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
     }
     //SP에서 mStore를 불러오는 메소드
     //Gson 사용
     //즐겨찾기 버튼 클릭할 때마다 실행
-    public static List<FStore> getmStoreFromSP(Context context){
+    static List<FStore> getmStoreFromSP(Context context){
         SharedPreferences prefs = PreferenceManager.getPreferences(context);
         Gson gson = new GsonBuilder().create();
         JsonParser parser = new JsonParser();
         String str = prefs.getString(KEY, null);
         List<FStore> temp;
         if(str == null) return null;
-//        Object t = parser.parse(str);
-        //JsonElement rootObj = parser.parse(str).getAsJsonObject().deepCopy();
+        Log.e(TAG,str);
         temp = gson.fromJson(str, new TypeToken<List<FStore>>(){}.getType());
+        Log.e(TAG,gson.toJson(temp));
         return temp;
     }
 

@@ -1,5 +1,6 @@
 package com.example.mapsactivity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,7 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import androidx.appcompat.app.AlertDialog;
+import android.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -69,6 +70,7 @@ import kotlin.jvm.internal.Intrinsics;
 
 import static com.example.mapsactivity.PreferenceManager.getmStoreFromSP;
 import static com.example.mapsactivity.PreferenceManager.setmStoretoSP;
+import static com.example.mapsactivity.RecyclerAdapter.mContext;
 
 public final class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, OnMarkerClickListener {
     private final static String TAG = "MapsActivity";
@@ -81,6 +83,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static Location currentLocation; //카메라 시점 현위치
     private static Location curLocation;
     private static final int PERMISSION_REQUESTS = 1;
+    @SuppressLint("StaticFieldLeak")
 
     private EditText entertext;
     private ToggleButton fvb;
@@ -115,6 +118,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         this.setContentView(R.layout.activity_maps);
         final EditText enterText = this.findViewById(R.id.entertext);
         mRecyclerView = findViewById(R.id.recyclerview);
+        RecyclerAdapter.mContext = this;
+
 
 //        final LinearLayout layout1 = (LinearLayout) findViewById(R.id.menu_bar);
 //
@@ -139,6 +144,11 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
                 public void onRefresh() {
+                    mStore = getmStoreFromSP(mContext);
+                    mAdapter = new RecyclerAdapter(mStore);
+                    mAdapter.notifyDataSetChanged();
+                    mRecyclerView.setAdapter(mAdapter);
+                    mRecyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this));
                     swipeRefreshLayout.setRefreshing(false);
                 }
             });
@@ -148,12 +158,11 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 @Override
                 public void onClick(View v) { //map의 북마크 버튼 클릭하면 목록 visibility = true;
                     if(!fvb.isChecked()) {
-                        mStore = getmStoreFromSP(MapsActivity.this);
+                        mStore = getmStoreFromSP(mContext);
                         mAdapter = new RecyclerAdapter(mStore);
+                        mAdapter.notifyDataSetChanged();
                         mRecyclerView.setAdapter(mAdapter);
                         mRecyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this));
-
-
                         swipeRefreshLayout.setVisibility(View.VISIBLE);
                         Log.e(TAG,"fuxx");
                     }
@@ -367,11 +376,11 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             @Override
             public void onInfoWindowLongClick(final Marker marker) {
                 boolean isthere = false;
-                mStore = getmStoreFromSP(MapsActivity.this);
+                mStore = getmStoreFromSP(mContext);
                 if(mStore != null) {
                     Log.e(TAG,"널아님");
                     for (FStore fstore : mStore) {
-                        if (fstore.getCode().equals(((Store)marker.getTag()).code)) {
+                        if (fstore.getCode().equals(((Store) Objects.requireNonNull(marker.getTag())).code)) {
                             isthere = true;
                             break;
                         }
@@ -393,7 +402,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                             .setNeutralButton("예", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     // store 객체를 받아서 parameter로 넘김.
-                                    Log.e(TAG, "ㅇㅇㅇㅇㅇㅇㅇㅇㅇ : " + ((Store) marker.getTag()).getName());
+                                    Log.e(TAG, "ㅇㅇㅇㅇㅇㅇㅇㅇㅇ : " + ((Store) Objects.requireNonNull(marker.getTag())).getName());
                                     addFV_Store((Store) marker.getTag());
 
                                     Toast.makeText(getApplicationContext(), "확인", Toast.LENGTH_LONG).show();
@@ -561,7 +570,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     public void addFV_Store(Store store){
-        mStore = getmStoreFromSP(MapsActivity.this);
+        mStore = getmStoreFromSP(mContext);
         FStore fStore = new FStore();
         fStore.setCode(store.code);
         fStore.setName(store.name);
@@ -576,6 +585,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                     return;
                 }
             }
+            mStore.add(fStore);
+            setmStoretoSP(this, mStore);
         }
         else{
             mStore = new ArrayList<>();
