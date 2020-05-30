@@ -690,6 +690,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 btnHelp.setText("");
                 isImgOpen = false;
             }
+
             else{
                 btnHelp.setText("");
                 isImgOpen = true;
