@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorAccent">
+    android:background="#FFFFFF">
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -14,13 +14,13 @@
         <ImageView
             android:layout_width="@dimen/img_width_height"
             android:layout_height="@dimen/img_width_height"
-            android:src="@drawable/ic_gray_pin" />
+            android:src="@drawable/ic_help" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/page_4_title"
-            android:textColor="@android:color/white"
+            android:textColor="#0f4c81"
             android:textSize="@dimen/slide_title"
             android:textStyle="bold" />
 
@@ -32,7 +32,7 @@
             android:paddingRight="@dimen/desc_padding"
             android:text="@string/page_4_desc"
             android:textAlignment="center"
-            android:textColor="@android:color/white"
+            android:textColor="#0f4c81"
             android:textSize="@dimen/slide_desc" />
 
     </LinearLayout>
