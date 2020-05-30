@@ -38,6 +38,11 @@ public class MarkerItemAdapter implements GoogleMap.InfoWindowAdapter {
 
     @Override
     public View getInfoWindow(Marker marker) {
+        return getInfoContents(marker);
+    }
+
+    @Override
+    public View getInfoContents(Marker marker) {
         TextView tvStoreName = markerView.findViewById(R.id.tvStoreName);
         TextView tvStoreStock = markerView.findViewById(R.id.tvStoreStock);
         Button tvStar = markerView.findViewById(R.id.tvStar);
@@ -45,10 +50,5 @@ public class MarkerItemAdapter implements GoogleMap.InfoWindowAdapter {
         tvStoreName.setText(storeName);
         tvStoreStock.setText(storeStock);
         return markerView;
-    }
-
-    @Override
-    public View getInfoContents(Marker marker) {
-        return null;
     }
 }
