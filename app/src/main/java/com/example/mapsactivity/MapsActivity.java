@@ -184,23 +184,24 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             }
         });
 
-//        최초 실행 여부를 판단 ->>>
-//        SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
-//        boolean checkFirst = pref.getBoolean("checkFirst", false);
-//        if(checkFirst==false){
-//            // 앱 최초 실행시 하고 싶은 작업
-//            SharedPreferences.Editor editor = pref.edit();
-//            editor.putBoolean("checkFirst",true);
-//            editor.commit();
-//
-//            Intent intent = new Intent(MapsActivity.this, TutorialActivity.class);
-//            startActivity(intent);
-//            finish();
-//        }else{
-//            // 최초 실행이 아닐때 진행할 작업
-//        }
-//          <<<-
+        ///
+        ///
+        ///
+        /// 초기 페이지
+        SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
+        boolean checkFirst = pref.getBoolean("checkFirst", false);
+        if(checkFirst==false){
+            // 앱 최초 실행시 하고 싶은 작업
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putBoolean("checkFirst",true);
+            editor.commit();
 
+            Intent intent = new Intent(MapsActivity.this, TutorialActivity.class);
+            startActivity(intent);
+            finish();
+        }else{
+            // 최초 실행이 아닐때 진행할 작업
+        }
 
 // 세일 주석처리 
 //        layout1 = (LinearLayout) findViewById(R.id.menu_bar);
