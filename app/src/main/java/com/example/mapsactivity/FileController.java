@@ -1,5 +1,6 @@
 package com.example.mapsactivity;
 
+import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
@@ -20,16 +21,15 @@ public class FileController {
 
     public static void fileWriter(FStore fStore) {
             /////////////////////// 파일 쓰기 ///////////////////////
-//        String str = input_text.getText().toString();
-            // 파일 생성
-            File saveFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/favoriteData"); // 저장 경로
+        File saveFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+ "/favoriteData"); // 저장 경로
             // 폴더 생성
-            if(!saveFile.exists()){ // 폴더 없을 경우
-                saveFile.mkdir(); // 폴더 생성
-            }
         try {
+            if(!saveFile.exists()){ // 폴더 없을 경우
+                boolean isSuccess = saveFile.mkdir(); // 폴더 생성
+                Log.e(TAG, "만들었나요???" + Boolean.toString(isSuccess));
+            }
             BufferedWriter buf = new BufferedWriter(new FileWriter(saveFile+"/favoriteData.txt", true));
-            buf.append(fStore.code + "-");
+            buf.append(fStore.code).append("-");
             buf.append(String.valueOf(fStore.favorites)); // 날짜 쓰기
             buf.newLine(); // 개행
             Log.d(TAG, fStore.code);

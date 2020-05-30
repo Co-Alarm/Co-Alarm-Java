@@ -124,6 +124,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         this.setContentView(R.layout.activity_maps);
         final EditText enterText = this.findViewById(R.id.entertext);
 
+
         Fragment fragment = this.getSupportFragmentManager().findFragmentById(R.id.map);
         if (fragment == null) {
             throw new TypeCastException("null cannot be cast to non-null type com.google.android.gms.maps.SupportMapFragment");
@@ -229,6 +230,12 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 //        if (!allPermissionsGranted()) {
 //            getRuntimePermissions();
 //        }
+    }
+
+    public void checkPermission(){
+        if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        }
     }
 
     private void setUpMap() {
