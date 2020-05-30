@@ -60,11 +60,9 @@ final class NetworkController {
         } else {
             Log.e(TAG, "failed");
         }
-        Log.e(TAG,"\n");
-
         return storesByGeo;
     }
-    // 반환값이 Location 매가변수가 address
+
     @Nullable
     final Location fetchGeocoding(@NotNull String address, @NotNull Location location) throws IOException {
         Intrinsics.checkParameterIsNotNull(address, "address");

@@ -16,8 +16,6 @@ public class PreferenceManager {
     public static final String PREFERENCES_NAME = "PreferenceData";
     public static final String TAG = "PreferenceManager";
 
-    private static final String DEFAULT_VALUE_STRING = "";
-    private static final boolean DEFAULT_VALUE_BOOLEAN = false;
     private static final String KEY = "mStore";
 
     private static SharedPreferences getPreferences(Context context) {
@@ -51,9 +49,4 @@ public class PreferenceManager {
         editor.putString(KEY, str);
         editor.commit();
     }
-
-    //addFV_Store: 배열에 넣고, SP에 배열을 업데이트 - setmStoretoSP()
-    //removeFV_Store: 배열에서 빼고, SP에 배열을 업데이트 - setmStoretoSP()
-
-
 }

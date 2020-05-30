@@ -1,6 +1,5 @@
 package com.example.mapsactivity;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,16 +16,19 @@ import android.os.CountDownTimer;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -77,25 +79,15 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static Location searchedLocation;
     private static Location currentLocation; //카메라 시점 현위치
     private static Location curLocation;
-    private ArrayList<Marker> markerList;
     private static final int PERMISSION_REQUESTS = 1;
 
-    public static Context mContext = null;
     private EditText entertext;
+    private ToggleButton fvb;
     private InputMethodManager imm;
-    private static View markerView;
 
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     RecyclerView mRecyclerView = null ;
-    List<FStore> mStore = new ArrayList<FStore>();
+    List<FStore> mStore = new ArrayList<>();
     RecyclerAdapter mAdapter = new RecyclerAdapter(mStore);
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-
-//    StoreFetchTask fTask = new StoreFetchTask();
-//    GeocodingFetchTask gTask = new GeocodingFetchTask();
-//    private static List<Store> temp;
-final int PERMISSIONS_REQUEST_CODE = 1;
 
     Callable<List<Store>> taskSearch = new Callable<List<Store>>() {
         @Override
@@ -117,11 +109,20 @@ final int PERMISSIONS_REQUEST_CODE = 1;
         }
     };
 
-    //private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_maps);
         final EditText enterText = this.findViewById(R.id.entertext);
+
+//        final LinearLayout layout1 = (LinearLayout) findViewById(R.id.menu_bar);
+//
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                /*변경하고 싶은 레이아웃의 파라미터 값을 가져 옴*/
+//                LinearLayout.LayoutParams plControl = (LinearLayout.LayoutParams) layout1.getLayoutParams();
+//            }
+//        });
 
         Fragment fragment = this.getSupportFragmentManager().findFragmentById(R.id.map);
         if (fragment == null) {
@@ -132,18 +133,10 @@ final int PERMISSIONS_REQUEST_CODE = 1;
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             Intrinsics.checkExpressionValueIsNotNull(fusedLocationClient, "LocationServices.getFuse…ationProviderClient(this)");
 
-            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             mRecyclerView = findViewById(R.id.recyclerview) ;
             mRecyclerView.setAdapter(mAdapter);
-            mRecyclerView.setLayoutManager(new LinearLayoutManager(this)) ;
-            Button fvb = findViewById(R.id.Fvbtn);
-            fvb.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) { //map의 북마크 버튼 클릭하면 목록 visibility = true;
-                    if(mRecyclerView.getVisibility() == View.VISIBLE) mRecyclerView.setVisibility(View.INVISIBLE);
-                    else mRecyclerView.setVisibility(View.GONE);
-                }
-            });
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
             final SwipeRefreshLayout swipeRefreshLayout= findViewById(R.id.swipe_refresh_layout);
             swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
@@ -154,36 +147,36 @@ final int PERMISSIONS_REQUEST_CODE = 1;
                             Log.e(TAG,"refresing FV: "+fStore.name);
                         }
                     }
-                    //새로 recyclerview를 업데이트해야되는지?
                     swipeRefreshLayout.setRefreshing(false);
                 }
             });
-            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+            fvb = (ToggleButton) this.findViewById(R.id.btn_star);
+            fvb.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) { //map의 북마크 버튼 클릭하면 목록 visibility = true;
+                    if(!fvb.isChecked()) {
+                        mAdapter.notifyDataSetChanged();
+                        swipeRefreshLayout.setVisibility(View.VISIBLE);
+                        Log.e(TAG,"fuxx");
+                    }
+                    else swipeRefreshLayout.setVisibility(View.GONE);
+                }
+            });
+
+
 
             imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             entertext = findViewById(R.id.entertext);
 
-            //토글버튼 기능 ON/OFF
-            final ToggleButton tb2 =                    this.findViewById(R.id.btn_search2);
-            tb2.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(tb2.isChecked()) {
-                        entertext.setVisibility(View.VISIBLE);
-                    }
-                    else{
-                        entertext.setVisibility(View.INVISIBLE);
-                    } // end if
-                } // end onClick()
-            });
 
-            //
+            ImageView imgNotice = findViewById(R.id.imgNotice);
+
             entertext.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 @Override
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                     switch (actionId) {
                         case EditorInfo.IME_ACTION_SEARCH:
-                            // 검색 동작
                             System.out.println("************************************");
 
                             inputtext = entertext.getText().toString();
@@ -191,14 +184,6 @@ final int PERMISSIONS_REQUEST_CODE = 1;
                             ExecutorService service = Executors.newSingleThreadExecutor();
                             Future<Location> futurelc = service.submit(geocodingtask);
                             try {
-
-//                        searchedLocation = gTask.execute(inputtext).get();
-//                    } catch (ExecutionException | InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                    System.out.println("fetchGeocoding 성...공?"+ searchedLocation.getLatitude() +" "+ searchedLocation.getLongitude());
-//                    onLocationChanged(searchedLocation);
-
                                 searchedLocation = futurelc.get();
                                 Future<List<Store>> futurels = service.submit(taskSearch);
                                 Log.e(TAG, "searchedLocation");
@@ -226,9 +211,15 @@ final int PERMISSIONS_REQUEST_CODE = 1;
             });
         }
 
-        if (!allPermissionsGranted()) {
-            getRuntimePermissions();
-        }
+        //레이아웃을 위에 겹쳐서 올리는 부분
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        //레이아웃 객체생성
+        LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.activity_menu, null);
+
+        //레이아웃 위에 겹치기
+        LinearLayout.LayoutParams paramll = new LinearLayout.LayoutParams
+                (LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT);
+        addContentView(ll, paramll);
     }
 
     private void setUpMap() {
@@ -313,16 +304,17 @@ final int PERMISSIONS_REQUEST_CODE = 1;
 
     @Override
     public void onMapReady(final GoogleMap googleMap) {
-        /* 마커 관련 코드 */
-
         map = googleMap;
         Log.e(TAG,"hi");
         map.getUiSettings().setZoomControlsEnabled(true);
+        map.setOnMarkerClickListener(this);
         setUpMap();
         setDefaultLocation();
         map.getUiSettings().setCompassEnabled(false);
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setZoomControlsEnabled(false);
+
+
         map.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener(){
             @Override
             public boolean onMyLocationButtonClick()
@@ -475,32 +467,29 @@ final int PERMISSIONS_REQUEST_CODE = 1;
 
     //핀 찍는 기능
     void placeMarkerOnMap(final GoogleMap map, List<Store> storesByGeo) {
-        /* 마커 관련 코드 */
-        if (storesByGeo == null) Log.e(TAG, "thisisfucxingnull");
         if (storesByGeo != null) {
             Log.e(TAG, "isnotnull");
             Log.e(TAG, "is: " + storesByGeo.get(0).getAddr());
             for (final Store store : storesByGeo) {
                 final LatLng pinLocation = new LatLng(store.getLat(), store.getLng());
                 final String remain = store.getRemain_stat();
-                if (remain == null)
-                    continue;
+                if(remain == null) continue;
                 this.runOnUiThread(new Runnable() {
                     public final void run() {
                         final MarkerOptions markerOptions;
                         //녹색(100개 이상)/노랑색(30~99개)/빨강색(2~29개)/회색(0~1)개
                         switch (remain) {
                             case "plenty":
-                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_green);
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_green_pin);
                                 break;
                             case "some":
-                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_yellow);
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_yellow_pin);
                                 break;
                             case "few":
-                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_red);
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_red_pin);
                                 break;
                             default:
-                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_gray);
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_gray_pin);
                                 break;
                         }
                         map.addMarker(markerOptions).setTag(store);
@@ -534,11 +523,12 @@ final int PERMISSIONS_REQUEST_CODE = 1;
         }
     }
 
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@
-    //markerview의 북마크 버튼 클릭시 실행
     public void addFV_Store(Store store){
         FStore fStore = new FStore();
         fStore.setCode(store.code);
+        fStore.setName(store.name);
+        fStore.setAddr(store.addr);
+        fStore.setRemain_stat(store.remain_stat);
         fStore.setFavorites(true);
         Log.e(TAG,"addFV:"+store.name);
 
@@ -546,7 +536,6 @@ final int PERMISSIONS_REQUEST_CODE = 1;
         setmStoretoSP(this, mStore);
     }
 
-    //marckerview에 북마크가 이미 클릭되어 있는 상태에서 클릭되면 실행
     public void deleteFV_Store(Store store){
         String code = store.code;
 
