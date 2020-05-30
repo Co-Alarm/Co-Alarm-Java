@@ -115,7 +115,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         this.setContentView(R.layout.activity_maps);
         final EditText enterText = this.findViewById(R.id.entertext);
         mRecyclerView = findViewById(R.id.recyclerview);
-        //clearall(this);
 
 //        final LinearLayout layout1 = (LinearLayout) findViewById(R.id.menu_bar);
 //
@@ -426,7 +425,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                             })
                             .setCancelable(false) // 백버튼으로 팝업창이 닫히지 않도록 한다.
                             .show();
-                    isthere = false;
                 }
             }
         });
