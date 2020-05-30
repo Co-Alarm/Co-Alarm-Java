@@ -8,8 +8,8 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Bitmap.Config;
+import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
@@ -41,9 +41,9 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -52,19 +52,16 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import org.jetbrains.annotations.Nullable;
 
 import kotlin.TypeCastException;
 import kotlin.jvm.internal.Intrinsics;
@@ -97,6 +94,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 //    StoreFetchTask fTask = new StoreFetchTask();
 //    GeocodingFetchTask gTask = new GeocodingFetchTask();
 //    private static List<Store> temp;
+final int PERMISSIONS_REQUEST_CODE = 1;
 
     Callable<List<Store>> taskSearch = new Callable<List<Store>>() {
         @Override
@@ -123,7 +121,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_maps);
         final EditText enterText = this.findViewById(R.id.entertext);
-
 
         Fragment fragment = this.getSupportFragmentManager().findFragmentById(R.id.map);
         if (fragment == null) {
@@ -227,9 +224,10 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 }
             });
         }
-//        if (!allPermissionsGranted()) {
-//            getRuntimePermissions();
-//        }
+
+        if (!allPermissionsGranted()) {
+            getRuntimePermissions();
+        }
     }
 
     public void checkPermission(){
@@ -547,9 +545,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         FStore fStore = new FStore();
         fStore.setCode(store.code);
         fStore.setFavorites(true);
-
         Log.e(TAG,"addFV:"+store.name);
-        FileController.fileWriter(fStore);
 
         mStore.add(fStore);
     }
@@ -596,6 +592,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
         return true;
     }
+
     private void getRuntimePermissions() {
         List<String> allNeededPermissions = new ArrayList<>();
         for (String permission : getRequiredPermissions()) {
@@ -608,6 +605,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                     this, allNeededPermissions.toArray(new String[0]), PERMISSION_REQUESTS);
         }
     }
+
     private static boolean isPermissionGranted(Context context, String permission) {
         if (ContextCompat.checkSelfPermission(context, permission)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -617,6 +615,4 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         Log.i(TAG, "Permission NOT granted: " + permission);
         return true;
     }
-
-
 }
