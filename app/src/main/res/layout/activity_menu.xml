@@ -81,12 +81,12 @@
             <!--    메뉴바 -->
             <ToggleButton
                 android:id="@+id/btn_tap"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:layout_marginLeft="30dp"
-                android:layout_marginTop="15dp"
                 android:layout_marginRight="30dp"
                 android:layout_marginBottom="15dp"
+                android:layout_marginTop="15dp"
                 android:background="@drawable/ic_menu"
                 android:textOff=""
                 android:textOn="" />
@@ -95,10 +95,11 @@
             <!--    스타 그림 -->
             <ToggleButton
                 android:id="@+id/btn_star"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="15dp"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:layout_marginRight="30dp"
+                android:layout_marginBottom="15dp"
+                android:layout_marginTop="15dp"
                 android:background="@drawable/ic_filled_star"
                 android:textOff=""
                 android:textOn="" />
@@ -106,8 +107,8 @@
             <!--    물음표 그림 -->
             <ToggleButton
                 android:id="@+id/btn_help"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:layout_marginRight="30dp"
                 android:layout_marginBottom="15dp"
                 android:layout_marginTop="15dp"
