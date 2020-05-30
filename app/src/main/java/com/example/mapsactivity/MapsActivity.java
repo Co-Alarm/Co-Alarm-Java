@@ -1,6 +1,7 @@
 package com.example.mapsactivity;
 
-import android.annotation.SuppressLint;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,9 +20,10 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
+import android.view.animation.Animation;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -29,14 +31,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -68,10 +68,6 @@ import java.util.concurrent.Future;
 import kotlin.TypeCastException;
 import kotlin.jvm.internal.Intrinsics;
 
-import static com.example.mapsactivity.PreferenceManager.getmStoreFromSP;
-import static com.example.mapsactivity.PreferenceManager.setmStoretoSP;
-import static com.example.mapsactivity.RecyclerAdapter.mContext;
-
 public final class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, OnMarkerClickListener {
     private final static String TAG = "MapsActivity";
     private static GoogleMap map;
@@ -83,11 +79,25 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static Location currentLocation; //카메라 시점 현위치
     private static Location curLocation;
     private static final int PERMISSION_REQUESTS = 1;
-    @SuppressLint("StaticFieldLeak")
 
     private EditText entertext;
     private ToggleButton fvb;
     private InputMethodManager imm;
+    boolean isPageOpen = false;
+    boolean isImgOpen = false;
+    Animation tranlateLeftAnim;
+    Animation tranlateRightAnim;
+    Animation fade_in;
+    Animation fade_out;
+    LinearLayout page;
+    ImageView imgNotice;
+    Button button;
+    Button btnHelp;
+//    LinearLayout layout1;
+
+//    StoreFetchTask fTask = new StoreFetchTask();
+//    GeocodingFetchTask gTask = new GeocodingFetchTask();
+//    private static List<Store> temp;
 
     RecyclerView mRecyclerView;
     List<FStore> mStore = new ArrayList<>();
@@ -120,14 +130,84 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         mRecyclerView = findViewById(R.id.recyclerview);
         RecyclerAdapter.mContext = this;
 
+        page = findViewById(R.id.page);
 
-//        final LinearLayout layout1 = (LinearLayout) findViewById(R.id.menu_bar);
+        //anim 폴더의 애니메이션을 가져와서 준비
+        tranlateLeftAnim = AnimationUtils.loadAnimation(this,R.anim.translate_left);
+        tranlateRightAnim = AnimationUtils.loadAnimation(this,R.anim.translate_right);
+
+        final FrameLayout.LayoutParams plControl = (FrameLayout.LayoutParams) page.getLayoutParams();
+
+        //페이지 슬라이딩 이벤트가 발생했을때 애니메이션이 시작 됐는지 종료 됐는지 감지할 수 있다.
+        SlidingPageAnimationListener animListener = new SlidingPageAnimationListener();
+        tranlateLeftAnim.setAnimationListener(animListener);
+        tranlateRightAnim.setAnimationListener(animListener);
+        button = findViewById(R.id.btnDraw); button.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if(isPageOpen){
+                    page.startAnimation(tranlateRightAnim);
+                    plControl.rightMargin = -500;
+                    page.setLayoutParams(plControl);
+                }
+                else{
+                    page.startAnimation(tranlateLeftAnim);
+                    plControl.rightMargin = 0;
+                    page.setLayoutParams(plControl);
+                }
+            }
+        });
+
+        //도움말 버튼 해결
+        imgNotice = findViewById(R.id.imgNotice);
+
+        //anim 폴더의 애니메이션을 가져와서 준비
+        fade_in = AnimationUtils.loadAnimation(this,R.anim.fade_in);
+        fade_out = AnimationUtils.loadAnimation(this,R.anim.fade_out);
+
+        //페이지 슬라이딩 이벤트가 발생했을때 애니메이션이 시작 됐는지 종료 됐는지 감지할 수 있다.
+        ImageAnimationListener imgListener = new ImageAnimationListener();
+        fade_in.setAnimationListener(imgListener);
+        fade_out.setAnimationListener(imgListener);
+        btnHelp = findViewById(R.id.btnHelp); btnHelp.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if(isImgOpen){
+                    imgNotice.startAnimation(fade_out);
+                }
+                else{
+                    imgNotice.startAnimation(fade_in);
+                    imgNotice.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+        ///
+        ///
+        ///
+        /// 초기 페이지
+        SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
+        boolean checkFirst = pref.getBoolean("checkFirst", false);
+        if(checkFirst==false){
+            // 앱 최초 실행시 하고 싶은 작업
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putBoolean("checkFirst",true);
+            editor.commit();
+
+            Intent intent = new Intent(MapsActivity.this, TutorialActivity.class);
+            startActivity(intent);
+            finish();
+        }else{
+            // 최초 실행이 아닐때 진행할 작업
+        }
+
+// 세일 주석처리 
+//        layout1 = (LinearLayout) findViewById(R.id.menu_bar);
 //
 //        runOnUiThread(new Runnable() {
 //            @Override
 //            public void run() {
 //                /*변경하고 싶은 레이아웃의 파라미터 값을 가져 옴*/
 //                LinearLayout.LayoutParams plControl = (LinearLayout.LayoutParams) layout1.getLayoutParams();
+//
 //            }
 //        });
 
@@ -193,13 +273,13 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                                 LatLng currentLatLng = new LatLng(searchedLocation.getLatitude(), searchedLocation.getLongitude());
                                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
                                 map.clear();
-                                placeMarkerOnMap(map, futurels.get());
+                                placeMarkerOnMap(futurels.get());
 
                                 System.out.println("fetchGeocoding 성공: " + searchedLocation.getLatitude() + " " + searchedLocation.getLongitude());
 
                                 //키보드 사라지는 기능 + Toast기능 + edittext 리셋 기능
                                 imm.hideSoftInputFromWindow(entertext.getWindowToken(), 0);
-                                Toast.makeText(getApplicationContext(), "\""+inputtext +"\""+" 검색결과입니다", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "\"" + inputtext + "\"" + " 검색결과입니다", Toast.LENGTH_LONG).show();
                                 entertext.setText("");
                             } catch (ExecutionException | InterruptedException e) {
                                 e.printStackTrace();
@@ -214,15 +294,19 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             });
         }
 
-        //레이아웃을 위에 겹쳐서 올리는 부분
-        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        //레이아웃 객체생성
-        LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.activity_menu, null);
-
-        //레이아웃 위에 겹치기
-        LinearLayout.LayoutParams paramll = new LinearLayout.LayoutParams
-                (LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT);
-        addContentView(ll, paramll);
+//        //레이아웃을 위에 겹쳐서 올리는 부분
+//        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//        //레이아웃 객체생성
+//        LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.activity_menu, null);
+//
+//        //레이아웃 위에 겹치기
+//        LinearLayout.LayoutParams paramll = new LinearLayout.LayoutParams
+//                (LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT);
+//        addContentView(ll, paramll);
+//
+//        if (!allPermissionsGranted()) {
+//            getRuntimePermissions();
+//        }
     }
 
     private void setUpMap() {
@@ -277,7 +361,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                                 } catch (ExecutionException | InterruptedException e) {
                                     e.printStackTrace();
                                 }
-                                placeMarkerOnMap(map, temp);
+                                placeMarkerOnMap(temp);
                             }
                         });
                     }
@@ -288,6 +372,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
                 }
             }.start();
+            Log.e(TAG,"h12");
+
         }
         if (ActivityCompat.checkSelfPermission(this, "android.permission.ACCESS_FINE_LOCATION") != 0) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -316,6 +402,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         map.getUiSettings().setCompassEnabled(false);
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setZoomControlsEnabled(false);
+        map.getUiSettings().setMapToolbarEnabled(false);
 
 
         map.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener(){
@@ -334,7 +421,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
-                placeMarkerOnMap(map, temp);
+                placeMarkerOnMap(temp);
+
                 return false;
             }
         });
@@ -365,7 +453,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 ExecutorService service = Executors.newSingleThreadExecutor();
                 Future<List<Store>> future = service.submit(taskLast);
                 try {
-                    placeMarkerOnMap(map, future.get());
+//                    temp = fTask.execute(lastLocation).get();
+                    placeMarkerOnMap(future.get());
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -466,7 +555,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
-                placeMarkerOnMap(map, temp);
+                placeMarkerOnMap(temp);
             }
         });
     }
@@ -484,11 +573,12 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
-        placeMarkerOnMap(map, temp);
+        placeMarkerOnMap(temp);
     }
 
+
     //사용자 sgv파일 이용하기 위한 메소드
-    private static BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
+    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
         if (vectorDrawable == null) {
             Intrinsics.throwNpe();
@@ -503,10 +593,11 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     //핀 찍는 기능
-    void placeMarkerOnMap(final GoogleMap map, List<Store> storesByGeo) {
+    void placeMarkerOnMap(List<Store> storesByGeo) {
+        if(storesByGeo == null )Log.e(TAG,"thisisfucxingnull");
         if (storesByGeo != null) {
-            Log.e(TAG, "isnotnull");
-            Log.e(TAG, "is: " + storesByGeo.get(0).getAddr());
+            Log.e(TAG,"isnotnull");
+            Log.e(TAG,"is: "+storesByGeo.get(0).getAddr());
             for (final Store store : storesByGeo) {
                 final LatLng pinLocation = new LatLng(store.getLat(), store.getLng());
                 final String remain = store.getRemain_stat();
@@ -610,10 +701,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         setmStoretoSP(this, mStore);
     }
 
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-        return false;
-    }
 
     private String[] getRequiredPermissions() {
         try {
@@ -660,5 +747,51 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
         Log.i(TAG, "Permission NOT granted: " + permission);
         return true;
+    }
+
+    private class SlidingPageAnimationListener implements Animation.AnimationListener{
+        @Override public void onAnimationStart(Animation animation) {
+
+        }
+        public void onAnimationEnd(Animation animation){
+            if(isPageOpen){
+                page.setVisibility(View.VISIBLE);
+                button.setText("");
+                isPageOpen = false;
+            }
+            else{
+                button.setText("");
+                isPageOpen = true;
+            }
+        }
+        @Override public void onAnimationRepeat(Animation animation) {
+
+        }
+    }
+
+    private class ImageAnimationListener implements Animation.AnimationListener{
+        @Override public void onAnimationStart(Animation animation) {
+
+        }
+        public void onAnimationEnd(Animation animation){
+            if(isImgOpen){
+                imgNotice.setVisibility(View.INVISIBLE);
+                btnHelp.setText("");
+                isImgOpen = false;
+            }
+            else{
+                btnHelp.setText("");
+                isImgOpen = true;
+            }
+        }
+        @Override public void onAnimationRepeat(Animation animation) {
+
+        }
+    }
+
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        return false;
     }
 }
