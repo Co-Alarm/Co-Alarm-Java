@@ -3,10 +3,7 @@ package com.example.mapsactivity;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Bitmap.Config;
@@ -14,19 +11,14 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.provider.Settings;
-import android.text.Layout;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -35,10 +27,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
@@ -56,7 +44,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -83,18 +70,24 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static Location searchedLocation;
     private static Location currentLocation; //카메라 시점 현위치
     private static Location curLocation;
+    private ArrayList<Marker> markerList;
     private static final int PERMISSION_REQUESTS = 1;
 
+    public static Context mContext = null;
     private EditText entertext;
     private InputMethodManager imm;
     private static View markerView;
-    MarkerItemAdapter markerItemAdapter;
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     RecyclerView mRecyclerView = null ;
-    List<FStore> mStore = Collections.emptyList();
+    List<FStore> mStore = new ArrayList<FStore>();
     RecyclerAdapter mAdapter = new RecyclerAdapter(mStore);
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+//    StoreFetchTask fTask = new StoreFetchTask();
+//    GeocodingFetchTask gTask = new GeocodingFetchTask();
+//    private static List<Store> temp;
 
     Callable<List<Store>> taskSearch = new Callable<List<Store>>() {
         @Override
@@ -118,9 +111,9 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
     //private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            this.setContentView(R.layout.activity_maps);
-            final EditText enterText = this.findViewById(R.id.entertext);
+        super.onCreate(savedInstanceState);
+        this.setContentView(R.layout.activity_maps);
+        final EditText enterText = this.findViewById(R.id.entertext);
 
         Fragment fragment = this.getSupportFragmentManager().findFragmentById(R.id.map);
         if (fragment == null) {
@@ -190,6 +183,14 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                             ExecutorService service = Executors.newSingleThreadExecutor();
                             Future<Location> futurelc = service.submit(geocodingtask);
                             try {
+
+//                        searchedLocation = gTask.execute(inputtext).get();
+//                    } catch (ExecutionException | InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                    System.out.println("fetchGeocoding 성...공?"+ searchedLocation.getLatitude() +" "+ searchedLocation.getLongitude());
+//                    onLocationChanged(searchedLocation);
+
                                 searchedLocation = futurelc.get();
                                 Future<List<Store>> futurels = service.submit(taskSearch);
                                 Log.e(TAG, "searchedLocation");
@@ -307,8 +308,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         markerView = getLayoutInflater().inflate(R.layout.marker_view, null);
 
         map = googleMap;
+        Log.e(TAG,"hi");
         map.getUiSettings().setZoomControlsEnabled(true);
-        map.setOnMarkerClickListener(this);
         setUpMap();
         setDefaultLocation();
         map.getUiSettings().setCompassEnabled(false);
@@ -318,6 +319,9 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             @Override
             public boolean onMyLocationButtonClick()
             {
+//                View b = findViewById(R.id.btn_reset);
+//                b.setVisibility(View.GONE);
+
                 //이전 마커 지우기
                 map.clear();
 
@@ -365,6 +369,38 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
+            }
+        });
+
+        map.setOnInfoWindowLongClickListener(new GoogleMap.OnInfoWindowLongClickListener() {
+            @Override
+            public void onInfoWindowLongClick(final Marker marker) {
+
+                AlertDialog.Builder oDialog = new AlertDialog.Builder(MapsActivity.this,
+                        android.R.style.Theme_DeviceDefault_Light_Dialog);
+
+                oDialog.setMessage("해당 약국을 즐겨찾기에 추가하시겠습니까?")
+                        .setTitle("즐겨찾기 추가")
+                        .setPositiveButton("아니오", new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Log.i("Dialog", "취소");
+                                Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_LONG).show();
+                            }
+                        })
+                        .setNeutralButton("예", new DialogInterface.OnClickListener()  {
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                // store 객체를 받아서 parameter로 넘김.
+                                Log.e(TAG, "ㅇㅇㅇㅇㅇㅇㅇㅇㅇ : " + ((Store) marker.getTag()).getName());
+                                addFV_Store((Store)marker.getTag());
+
+                                Toast.makeText(getApplicationContext(), "확인", Toast.LENGTH_LONG).show();
+                            }
+                        })
+                        .setCancelable(false) // 백버튼으로 팝업창이 닫히지 않도록 한다.
+                        .show();
             }
         });
     }
@@ -418,7 +454,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     //사용자 sgv파일 이용하기 위한 메소드
-    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
+    private static BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
         if (vectorDrawable == null) {
             Intrinsics.throwNpe();
@@ -435,46 +471,49 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     //핀 찍는 기능
     void placeMarkerOnMap(final GoogleMap map, List<Store> storesByGeo) {
         /* 마커 관련 코드 */
+        if (storesByGeo == null) Log.e(TAG, "thisisfucxingnull");
         if (storesByGeo != null) {
+            Log.e(TAG, "isnotnull");
+            Log.e(TAG, "is: " + storesByGeo.get(0).getAddr());
             for (final Store store : storesByGeo) {
                 final LatLng pinLocation = new LatLng(store.getLat(), store.getLng());
                 final String remain = store.getRemain_stat();
-                if(remain == null)
+                if (remain == null)
                     continue;
                 this.runOnUiThread(new Runnable() {
                     public final void run() {
-                        final MarkerOptions markerOptions = new MarkerOptions();
+                        final MarkerOptions markerOptions;
                         //녹색(100개 이상)/노랑색(30~99개)/빨강색(2~29개)/회색(0~1)개
                         switch (remain) {
                             case "plenty":
-                                markerOptions.position(pinLocation);
-                                //MarkerOptions의 매개변수에 color를 넣어야함
-                                markerOptions.icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_green));
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_green);
                                 break;
                             case "some":
-                                markerOptions.position(pinLocation);
-                                //MarkerOptions의 매개변수에 color를 넣어야함
-                                markerOptions.icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_yellow));
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_yellow);
                                 break;
                             case "few":
-                                markerOptions.position(pinLocation);
-                                //MarkerOptions의 매개변수에 color를 넣어야함
-                                markerOptions.icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_red));
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_red);
                                 break;
                             default:
-                                markerOptions.position(pinLocation);
-                                //MarkerOptions의 매개변수에 color를 넣어야함
-                                markerOptions.icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_gray));
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_gray);
                                 break;
                         }
-                        markerItemAdapter = new MarkerItemAdapter(markerView, store.getName(), remainState(remain));
-                        map.setInfoWindowAdapter(markerItemAdapter);
-                        Log.e(TAG, "in runonuithread : " + store.getName());
-                        map.addMarker(markerOptions).showInfoWindow();
+                        map.addMarker(markerOptions).setTag(store);
                     }
                 });
             }
         }
+    }
+
+    public MarkerOptions newMarker(Store store, LatLng location, int icon) {
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(location);
+        markerOptions.title(store.getName());
+        markerOptions.snippet(remainState(store.remain_stat));
+        // MarkerOptions의 매개변수에 color를 넣어야함
+        markerOptions.icon(bitmapDescriptorFromVector(getApplicationContext(), icon));
+
+        return markerOptions;
     }
 
     public static String remainState (String remain) {
@@ -494,9 +533,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     //markerview의 북마크 버튼 클릭시 실행
     public void addFV_Store(Store store){
         FStore fStore = new FStore();
-        fStore.setAddr(store.addr);
         fStore.setCode(store.code);
-        fStore.setName(store.name);
         fStore.setFavorites(true);
         Log.e(TAG,"addFV:"+store.name);
 
@@ -516,14 +553,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
         Log.e(TAG,"if no logcat, no delete");
     }
-
-    //recyclerview에서 북마크 버튼을 클릭하면 실행
-//    public void deleteFV_FS(FStore fStore){
-//        mStore.remove(fStore);
-//        Log.e(TAG,"deleteFV: "+fStore.name);
-//    }
-    // >>>>>>>>Adapter에서 실행하게 변경함: 삭제해도 ㄱㅊ
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     @Override
     public boolean onMarkerClick(Marker marker) {
