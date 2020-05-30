@@ -92,11 +92,14 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
     private EditText entertext;
     private InputMethodManager imm;
-    private ImageView imgNotice;
     boolean isPageOpen = false;
+    boolean isImgOpen = false;
     Animation tranlateLeftAnim;
     Animation tranlateRightAnim;
+    Animation fade_in;
+    Animation fade_out;
     LinearLayout page;
+    ImageView imgNotice;
     Button button;
     Button btnHelp;
 //    LinearLayout layout1;
@@ -154,6 +157,29 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                     page.startAnimation(tranlateLeftAnim);
                     plControl.rightMargin = 0;
                     page.setLayoutParams(plControl);
+                }
+            }
+        });
+
+        //도움말 버튼 해결
+        imgNotice = findViewById(R.id.imgNotice);
+
+        //anim 폴더의 애니메이션을 가져와서 준비
+        fade_in = AnimationUtils.loadAnimation(this,R.anim.fade_in);
+        fade_out = AnimationUtils.loadAnimation(this,R.anim.fade_out);
+
+        //페이지 슬라이딩 이벤트가 발생했을때 애니메이션이 시작 됐는지 종료 됐는지 감지할 수 있다.
+        ImageAnimationListener imgListener = new ImageAnimationListener();
+        fade_in.setAnimationListener(imgListener);
+        fade_out.setAnimationListener(imgListener);
+        btnHelp = findViewById(R.id.btnHelp); btnHelp.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if(isImgOpen){
+                    imgNotice.startAnimation(fade_out);
+                }
+                else{
+                    imgNotice.startAnimation(fade_in);
+                    imgNotice.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -721,6 +747,26 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             else{
                 button.setText("");
                 isPageOpen = true;
+            }
+        }
+        @Override public void onAnimationRepeat(Animation animation) {
+
+        }
+    }
+
+    private class ImageAnimationListener implements Animation.AnimationListener{
+        @Override public void onAnimationStart(Animation animation) {
+
+        }
+        public void onAnimationEnd(Animation animation){
+            if(isImgOpen){
+                imgNotice.setVisibility(View.INVISIBLE);
+                btnHelp.setText("");
+                isImgOpen = false;
+            }
+            else{
+                btnHelp.setText("");
+                isImgOpen = true;
             }
         }
         @Override public void onAnimationRepeat(Animation animation) {
