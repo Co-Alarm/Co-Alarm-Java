@@ -43,7 +43,7 @@
                 android:layout_marginTop="15dp"
                 android:layout_marginRight="30dp"
                 android:layout_marginBottom="15dp"
-                android:background="@drawable/btn_menu"
+                android:background="@drawable/ic_menu"
                 android:textOff=""
                 android:textOn=""
                 android:textSize="30dp" />
@@ -55,7 +55,7 @@
                 android:layout_height="40dp"
                 android:layout_marginRight="30dp"
                 android:layout_marginBottom="60dp"
-                android:background="@drawable/btn_star"
+                android:background="@drawable/ic_filled_star"
                 android:textOff=""
                 android:textOn=""/>
 
@@ -66,7 +66,7 @@
                 android:layout_height="40dp"
                 android:layout_marginRight="30dp"
                 android:layout_marginBottom="60dp"
-                android:background="@drawable/btn_help"
+                android:background="@drawable/ic_help"
                 android:textOff=""
                 android:textOn=""/>
         </LinearLayout>
