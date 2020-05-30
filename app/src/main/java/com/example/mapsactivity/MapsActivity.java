@@ -130,6 +130,25 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         final EditText enterText = this.findViewById(R.id.entertext);
 
         //        최초 실행 여부를 판단 ->>>
+//        최초 실행 여부를 판단 ->>>
+//        SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
+//        boolean checkFirst = pref.getBoolean("checkFirst", false);
+//        if(checkFirst==false){
+//            // 앱 최초 실행시 하고 싶은 작업
+//            SharedPreferences.Editor editor = pref.edit();
+//            editor.putBoolean("checkFirst",true);
+//            editor.commit();
+//
+//            Intent intent = new Intent(MapsActivity.this, TutorialActivity.class);
+//            startActivity(intent);
+//            finish();
+//        }else{
+//            // 최초 실행이 아닐때 진행할 작업
+//        }
+//          <<<-
+//          <<<-
+
+        //        최초 실행 여부를 판단 ->>>
 //        SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
 //        boolean checkFirst = pref.getBoolean("checkFirst", false);
 //        if(checkFirst==false){
@@ -388,7 +407,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         map.setOnMarkerClickListener(this);
         setUpMap();
         setDefaultLocation();
-        map.setMyLocationEnabled(true);
         map.getUiSettings().setCompassEnabled(false);
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setZoomControlsEnabled(false);
