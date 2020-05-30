@@ -376,7 +376,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
-                curLocation = location;
+                lastLocation = location;
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16);
                 map.animateCamera(cameraUpdate);
