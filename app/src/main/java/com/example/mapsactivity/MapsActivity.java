@@ -1,6 +1,5 @@
 package com.example.mapsactivity;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -65,6 +64,8 @@ import java.util.concurrent.Future;
 
 import kotlin.TypeCastException;
 import kotlin.jvm.internal.Intrinsics;
+
+import static com.example.mapsactivity.PreferenceManager.setmStoretoSP;
 
 public final class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, OnMarkerClickListener {
     private final static String TAG = "MapsActivity";
@@ -227,12 +228,6 @@ final int PERMISSIONS_REQUEST_CODE = 1;
 
         if (!allPermissionsGranted()) {
             getRuntimePermissions();
-        }
-    }
-
-    public void checkPermission(){
-        if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
     }
 
@@ -548,6 +543,7 @@ final int PERMISSIONS_REQUEST_CODE = 1;
         Log.e(TAG,"addFV:"+store.name);
 
         mStore.add(fStore);
+        setmStoretoSP(this, mStore);
     }
 
     //marckerview에 북마크가 이미 클릭되어 있는 상태에서 클릭되면 실행
@@ -562,6 +558,8 @@ final int PERMISSIONS_REQUEST_CODE = 1;
             }
         }
         Log.e(TAG,"if no logcat, no delete");
+
+        setmStoretoSP(this, mStore);
     }
 
     @Override

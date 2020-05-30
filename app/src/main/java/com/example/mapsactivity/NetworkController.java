@@ -7,6 +7,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
@@ -17,10 +21,8 @@ import java.util.List;
 import kotlin.jvm.internal.Intrinsics;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
 import okhttp3.Request.Builder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import okhttp3.Response;
 
 final class NetworkController {
 
@@ -58,12 +60,13 @@ final class NetworkController {
         } else {
             Log.e(TAG, "failed");
         }
+        Log.e(TAG,"\n");
+
         return storesByGeo;
     }
     // 반환값이 Location 매가변수가 address
     @Nullable
     final Location fetchGeocoding(@NotNull String address, @NotNull Location location) throws IOException {
-
         Intrinsics.checkParameterIsNotNull(address, "address");
         String text = URLEncoder.encode(address, "UTF-8");
         System.out.println(text);

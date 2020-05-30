@@ -1,171 +1,59 @@
 package com.example.mapsactivity;
 
 import android.content.Context;
-
 import android.content.SharedPreferences;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 
+import java.util.List;
 
 public class PreferenceManager {
 
-    public static final String PREFERENCES_NAME = "rebuild_preference";
+    public static final String PREFERENCES_NAME = "PreferenceData";
     public static final String TAG = "PreferenceManager";
 
     private static final String DEFAULT_VALUE_STRING = "";
     private static final boolean DEFAULT_VALUE_BOOLEAN = false;
+    private static final String KEY = "mStore";
 
     private static SharedPreferences getPreferences(Context context) {
         return context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
     }
-
-
-    public static void setString(Context context, String key, String value) {
-        SharedPreferences prefs = getPreferences(context);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(key, value);
-        editor.commit();
-
+    //SP에서 mStore를 불러오는 메소드
+    //Gson 사용
+    //즐겨찾기 버튼 클릭할 때마다 실행
+    public List<FStore> getmStoreFromSP(Context context){
+        SharedPreferences prefs = PreferenceManager.getPreferences(context);
+        Gson gson = new GsonBuilder().create();
+        JsonParser parser = new JsonParser();
+        String str = prefs.getString(KEY, null);
+        List<FStore> temp;
+        if(str == null) return null;
+        JsonElement rootObj = parser.parse(str)
+                .getAsJsonObject().get("stores");
+        temp = gson.fromJson(rootObj, new TypeToken<List<Store>>() {
+        }.getType());
+        return temp;
     }
 
-
-    public static void setBoolean(Context context, String key, boolean value) {
-
-        SharedPreferences prefs = getPreferences(context);
-
-        SharedPreferences.Editor editor = prefs.edit();
-
-        editor.putBoolean(key, value);
-
-        editor.commit();
-
-    }
-
-
-
-    public static void setInt(Context context, String key, int value) {
-
-        SharedPreferences prefs = getPreferences(context);
-
+    //mStore를 SP에 쓰는 메소드
+    //Gson 사용
+    public static void setmStoretoSP(Context context, List<FStore> temp){
+        SharedPreferences prefs = PreferenceManager.getPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
 
-        editor.putInt(key, value);
-
+        Gson gson = new GsonBuilder().create();
+        String str = gson.toJson(temp);
+        editor.putString(KEY, str);
         editor.commit();
-
     }
 
+    //addFV_Store: 배열에 넣고, SP에 배열을 업데이트 - setmStoretoSP()
+    //removeFV_Store: 배열에서 빼고, SP에 배열을 업데이트 - setmStoretoSP()
 
-
-    public static void setLong(Context context, String key, long value) {
-
-        SharedPreferences prefs = getPreferences(context);
-
-        SharedPreferences.Editor editor = prefs.edit();
-
-        editor.putLong(key, value);
-
-        editor.commit();
-
-    }
-
-
-    public static void setFloat(Context context, String key, float value) {
-
-        SharedPreferences prefs = getPreferences(context);
-
-        SharedPreferences.Editor editor = prefs.edit();
-
-        editor.putFloat(key, value);
-
-        editor.commit();
-
-    }
-
-
-    public static String getString(Context context, String key) {
-
-        SharedPreferences prefs = getPreferences(context);
-
-        String value = prefs.getString(key, DEFAULT_VALUE_STRING);
-
-        return value;
-
-    }
-
-
-
-    public static boolean getBoolean(Context context, String key) {
-
-        SharedPreferences prefs = getPreferences(context);
-
-        boolean value = prefs.getBoolean(key, DEFAULT_VALUE_BOOLEAN);
-
-        return value;
-
-    }
-
-
-
-
-    public static int getInt(Context context, String key) {
-
-        SharedPreferences prefs = getPreferences(context);
-
-        int value = prefs.getInt(key, DEFAULT_VALUE_INT);
-
-        return value;
-
-    }
-
-
-
-    public static long getLong(Context context, String key) {
-
-        SharedPreferences prefs = getPreferences(context);
-
-        long value = prefs.getLong(key, DEFAULT_VALUE_LONG);
-
-        return value;
-
-    }
-
-
-
-    public static float getFloat(Context context, String key) {
-
-        SharedPreferences prefs = getPreferences(context);
-
-        float value = prefs.getFloat(key, DEFAULT_VALUE_FLOAT);
-
-        return value;
-
-    }
-
-
-    public static void removeKey(Context context, String key) {
-
-        SharedPreferences prefs = getPreferences(context);
-
-        SharedPreferences.Editor edit = prefs.edit();
-
-        edit.remove(key);
-
-        edit.commit();
-
-    }
-
-
-
-    public static void clear(Context context) {
-
-        SharedPreferences prefs = getPreferences(context);
-
-        SharedPreferences.Editor edit = prefs.edit();
-
-        edit.clear();
-
-        edit.commit();
-
-    }
 
 }

@@ -38,4 +38,5 @@ class FStore {
     public boolean getFavorites(){return favorites;}
     public void setFavorites(boolean temp){this.favorites = temp;}
 
+
 }
