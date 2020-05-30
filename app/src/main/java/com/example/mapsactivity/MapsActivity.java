@@ -3,8 +3,12 @@ package com.example.mapsactivity;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -14,6 +18,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.provider.Settings;
 import android.text.Layout;
 import android.util.Log;
@@ -35,6 +40,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -56,7 +62,9 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -79,6 +87,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static Location searchedLocation;
     private static Location currentLocation; //카메라 시점 현위치
     private static Location curLocation;
+    private static final int PERMISSION_REQUESTS = 1;
 
     private EditText entertext;
     private InputMethodManager imm;
@@ -119,6 +128,23 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_maps);
         final EditText enterText = this.findViewById(R.id.entertext);
+
+        //        최초 실행 여부를 판단 ->>>
+//        SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
+//        boolean checkFirst = pref.getBoolean("checkFirst", false);
+//        if(checkFirst==false){
+//            // 앱 최초 실행시 하고 싶은 작업
+//            SharedPreferences.Editor editor = pref.edit();
+//            editor.putBoolean("checkFirst",true);
+//            editor.commit();
+//
+//            Intent intent = new Intent(MapsActivity.this, TutorialActivity.class);
+//            startActivity(intent);
+//            finish();
+//        }else{
+//            // 최초 실행이 아닐때 진행할 작업
+//        }
+//          <<<-
 
 // 세일 주석처리 
 //        layout1 = (LinearLayout) findViewById(R.id.menu_bar);
@@ -177,7 +203,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 //            });
 
 
-
             imgNotice = findViewById(R.id.imgNotice);
 
 //            final ToggleButton tb3 =
@@ -229,7 +254,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
                                 //키보드 사라지는 기능 + Toast기능 + edittext 리셋 기능
                                 imm.hideSoftInputFromWindow(entertext.getWindowToken(), 0);
-                                Toast.makeText(getApplicationContext(), "\""+inputtext +"\""+" 검색결과입니다", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "\"" + inputtext + "\"" + " 검색결과입니다", Toast.LENGTH_LONG).show();
                                 entertext.setText("");
                             } catch (ExecutionException | InterruptedException e) {
                                 e.printStackTrace();
@@ -251,44 +276,108 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
 
         //레이아웃을 위에 겹쳐서 올리는 부분
-        LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         //레이아웃 객체생성
-        LinearLayout ll = (LinearLayout)inflater.inflate(R.layout.activity_menu, null);
+        LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.activity_menu, null);
 
         //레이아웃 위에 겹치기
         LinearLayout.LayoutParams paramll = new LinearLayout.LayoutParams
-                (LinearLayout.LayoutParams.FILL_PARENT,LinearLayout.LayoutParams.FILL_PARENT);
+                (LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT);
         addContentView(ll, paramll);
+
+        if (!allPermissionsGranted()) {
+            getRuntimePermissions();
+        }
     }
 
 
     private void setUpMap() {
-
-        //앱에게 위치권한 주는가 물어보는 부분
-        LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
-        boolean enabled = service
+        Log.e(TAG,"h");
+        final LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
+        final boolean enabled = Objects.requireNonNull(service)
                 .isProviderEnabled(LocationManager.GPS_PROVIDER);
 
-// check if enabled and if not send user to the GSP settings
-// Better solution would be to display a dialog and suggesting to
-// go to the settings
-        if (!enabled)
-        {
-            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            startActivity(intent);
-        }
+        if (!enabled) {
+            Log.e(TAG,"g");
 
-        // 앱의 gps 기능 off상태면 on 하도록 설정으로 이동하는 부분
-        if (ActivityCompat.checkSelfPermission(this, "android.permission.ACCESS_FINE_LOCATION") != 0) {
-            ActivityCompat.requestPermissions(this, new String[]{"android.permission.ACCESS_FINE_LOCATION"}, 1);
-        }
-        //현재 gps 위치 가져옴
-        curLocation = service.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            AlertDialog.Builder builder2 = new AlertDialog.Builder(this);
+            builder2.setTitle("GPS 알림")
+                    .setMessage("GPS 기능이 꺼져 있습니다. 확인을 누르면 설정으로 이동합니다.")
+                    .setNegativeButton("취소", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Toast.makeText(MapsActivity.this, "GPS 기능을 껐습니다.", Toast.LENGTH_LONG).show();
+                            dialog.cancel();
+                        }
+                    })
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(intent);
+                            Toast.makeText(MapsActivity.this, "GPS 기능을 켜 주세요.", Toast.LENGTH_LONG).show();
+                            dialog.cancel();
+                        }
+                    });
+            AlertDialog dialog2 = builder2.create();
+            dialog2.show();
+            Log.e(TAG,"hg");
 
-//        //gps값이 안받아와졌을 때, 네트워크좌표로 대체
-//        if(curLocation != null){
-//            curLocation = service.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-//        }
+            CountDownTimer countDownTimer = new CountDownTimer(15000,1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    if(Objects.requireNonNull((LocationManager)getSystemService(LOCATION_SERVICE))
+                            .isProviderEnabled(LocationManager.GPS_PROVIDER)){ //GPS 켜짐 감지
+                        Log.e(TAG,"GPS 켜짐 감지");
+                        map.clear();
+                        fusedLocationClient = LocationServices.getFusedLocationProviderClient(MapsActivity.this);
+                        fusedLocationClient.getLastLocation().addOnSuccessListener(MapsActivity.this, new OnSuccessListener<Location>() {
+                            @Override
+                            public void onSuccess(Location location) {
+                                curLocation = location;
+                                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16);
+                                map.animateCamera(cameraUpdate);
+
+                                // JSON 파싱, 마커생성
+                                StoreFetchTask storeFetchTask = new StoreFetchTask();
+                                List<Store> temp = null;
+                                try {
+                                    temp = storeFetchTask.execute(location).get();
+
+                                } catch (ExecutionException | InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                placeMarkerOnMap(temp);
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onFinish() { //GPS 켜지지 않고 15초 다 됨
+
+                }
+            }.start();
+            Log.e(TAG,"h12");
+
+        }
+        if(ActivityCompat.checkSelfPermission(this, "android.permission.ACCESS_FINE_LOCATION") != 0) {
+            Log.e(TAG,"dfsh");
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("위치 접근 권한")
+                    .setMessage("위치 접근 권한을 허용해 주세요.")
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ActivityCompat.requestPermissions(MapsActivity.this, new String[]{"android.permission.ACCESS_FINE_LOCATION"}, 1);
+                            dialog.cancel();
+                        }
+                    });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
     }
 
     @Override
@@ -298,6 +387,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         map.getUiSettings().setZoomControlsEnabled(true);
         map.setOnMarkerClickListener(this);
         setUpMap();
+        setDefaultLocation();
         map.setMyLocationEnabled(true);
         map.getUiSettings().setCompassEnabled(false);
         map.getUiSettings().setMyLocationButtonEnabled(false);
@@ -356,6 +446,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             @Override
             public void onSuccess(final Location lc) {
                 lastLocation = lc;
+                map.setMyLocationEnabled(true);
+                if(lc == null) return;
                 Log.e(TAG,"testingonSucceess");
                 LatLng currentLatLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
@@ -391,6 +483,14 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 placeMarkerOnMap(temp);
             }
         });
+    }
+
+    public void setDefaultLocation() {
+        //디폴트 위치, Seoul
+        LatLng DEFAULT_LOCATION = new LatLng(37.56, 126.97);
+
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(DEFAULT_LOCATION, 15);
+        map.moveCamera(cameraUpdate);
     }
 
     //현위치에서 재검색 버튼 기능
@@ -535,6 +635,52 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 //        }
 //        placeMarkerOnMap(temp);
 //    }
+    private String[] getRequiredPermissions() {
+        try {
+            PackageInfo info =
+                    this.getPackageManager()
+                            .getPackageInfo(this.getPackageName(), PackageManager.GET_PERMISSIONS);
+            String[] ps = info.requestedPermissions;
+            if (ps != null && ps.length > 0) {
+                return ps;
+            } else {
+                return new String[0];
+            }
+        } catch (Exception e) {
+            return new String[0];
+        }
+    }
+    private boolean allPermissionsGranted() {
+        for (String permission : getRequiredPermissions()) {
+            if (isPermissionGranted(this, permission)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void getRuntimePermissions() {
+        List<String> allNeededPermissions = new ArrayList<>();
+        for (String permission : getRequiredPermissions()) {
+            if (isPermissionGranted(this, permission)) {
+                allNeededPermissions.add(permission);
+            }
+        }
+        if (!allNeededPermissions.isEmpty()) {
+            ActivityCompat.requestPermissions(
+                    this, allNeededPermissions.toArray(new String[0]), PERMISSION_REQUESTS);
+        }
+    }
+
+    private static boolean isPermissionGranted(Context context, String permission) {
+        if (ContextCompat.checkSelfPermission(context, permission)
+                == PackageManager.PERMISSION_GRANTED) {
+            Log.i(TAG, "Permission granted: " + permission);
+            return false;
+        }
+        Log.i(TAG, "Permission NOT granted: " + permission);
+        return true;
+    }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
