@@ -22,16 +22,17 @@
         android:layout_gravity="bottom|left"
         android:layout_marginLeft="30dp"
         android:layout_marginBottom="60dp"
-        android:background="@drawable/ic_aim" />
+        android:background="@drawable/ic_gps" />
 
 <!--    // 검색창-->
     <EditText
         android:id="@+id/entertext"
         android:layout_width="250dp"
-        android:layout_height="40dp"
+        android:layout_height="50dp"
         android:layout_gravity="top|center_horizontal"
         android:layout_marginTop="23dp"
-        android:background="@color/white"
+        android:background="@drawable/edittext_shadow"
+        android:hint="시,군,구,동으로 검색하세요"
         android:alpha="1.0"
         android:singleLine="true"
         android:imeOptions="actionSearch"/>
@@ -41,14 +42,14 @@
     <Button
         android:id="@+id/btn_reset"
         android:layout_width="150dp"
-        android:layout_height="35dp"
+        android:layout_height="24dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="75dp"
         android:alpha="0.8"
         android:background="@drawable/button_background"
         android:onClick="onClick_reset"
         android:text="현위치에서 재검색"
-        android:textColor="#FFFFFF"
+        android:textColor="#006eaa"
         android:visibility="visible" />
 
 

@@ -445,25 +445,25 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                                 map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
                                         .position(pinLocation)
                                         .title(store.getName())
-                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_green)));
+                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_green_pin)));
                                 break;
                             case "some":
                                 map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
                                         .position(pinLocation)
                                         .title(store.getName())
-                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_yellow)));
+                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_yellow_pin)));
                                 break;
                             case "few":
                                 map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
                                         .position(pinLocation)
                                         .title(store.getName())
-                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_red)));
+                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_red_pin)));
                                 break;
                             default:
                                 map.addMarker(new MarkerOptions()   //MarkerOptions의 매개변수에 color를 넣어야함
                                         .position(pinLocation)
                                         .title(store.getName())
-                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_gray)));
+                                        .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_gray_pin)));
                                 break;
                         }
                     }
