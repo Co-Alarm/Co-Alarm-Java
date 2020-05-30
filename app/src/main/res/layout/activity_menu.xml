@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="horizontal"
-        android:layout_weight="1">
+        android:layout_weight="0.7">
         <LinearLayout
             android:layout_width="269dp"
             android:layout_height="match_parent"
@@ -30,19 +30,23 @@
             android:layout_weight="1"
             android:paddingBottom="10dp"
             android:background="#FFFFFF"
-            android:layout_marginRight="-270dp">
+            android:layout_marginRight="-270dp"
+            android:id="@+id/menu_bar">
 
-            <!--    스타 그림 -->
+            <!--    메뉴바 -->
+
             <ToggleButton
                 android:id="@+id/btn_tap"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="15dp"
                 android:layout_marginRight="30dp"
-                android:layout_marginBottom="60dp"
-                android:background="#ffffff"
-                android:textOff="+"
-                android:textOn="+"
-                android:textSize="30dp"/>
+                android:layout_marginBottom="15dp"
+                android:background="@drawable/btn_menu"
+                android:textOff=""
+                android:textOn=""
+                android:textSize="30dp" />
 
             <!--    스타 그림 -->
             <ToggleButton
@@ -72,5 +76,5 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.5"></LinearLayout>
+        android:layout_weight="0.8"></LinearLayout>
 </LinearLayout>
