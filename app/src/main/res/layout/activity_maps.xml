@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
-
-    <!--    // 지도 -->
-
-    <!--    // 검색창-->
 
     <fragment
         android:id="@+id/map"
@@ -24,7 +19,7 @@
         android:layout_gravity="top|center_horizontal"
         android:layout_marginTop="23dp"
         android:background="@drawable/edittext_shadow"
-        android:hint="시,군,구,동으로 검색하세요"
+        android:hint=" 시,군,구,동으로 검색하세요"
         android:alpha="1.0"
         android:singleLine="true"
         android:imeOptions="actionSearch"/>
@@ -46,16 +41,6 @@
 
 
     <!--    공적마스크 정보(이미지) -->
-    <ToggleButton
-        android:id="@+id/btn_star"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginBottom="15dp"
-        android:background="@drawable/ic_filled_star"
-        android:textOff=""
-        android:textOn="" />
 
     <ImageView
         android:id="@+id/imgNotice"
@@ -97,12 +82,14 @@
             android:layout_marginLeft="10dp"
             android:background="@drawable/ic_menu" />
 
-        <Button
+        <ToggleButton
             android:id="@+id/btnStar"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_gravity="left|center_vertical"
             android:layout_marginLeft="15dp"
+            android:textOn=""
+            android:textOff=""
             android:background="@drawable/ic_filled_star" />
 
         <Button

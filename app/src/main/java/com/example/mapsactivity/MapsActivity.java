@@ -1,10 +1,10 @@
 package com.example.mapsactivity;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -18,13 +18,14 @@ import android.os.CountDownTimer;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -36,7 +37,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -67,6 +70,10 @@ import java.util.concurrent.Future;
 
 import kotlin.TypeCastException;
 import kotlin.jvm.internal.Intrinsics;
+
+import static com.example.mapsactivity.PreferenceManager.getmStoreFromSP;
+import static com.example.mapsactivity.PreferenceManager.setmStoretoSP;
+import static com.example.mapsactivity.RecyclerAdapter.mContext;
 
 public final class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, OnMarkerClickListener {
     private final static String TAG = "MapsActivity";
@@ -233,8 +240,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 }
             });
 
-            fvb = this.findViewById(R.id.btn_star);
-            fvb.setOnClickListener(new OnClickListener() {
+            fvb = this.findViewById(R.id.btnStar);
+            fvb.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) { //map의 북마크 버튼 클릭하면 목록 visibility = true;
                     if(!fvb.isChecked()) {
