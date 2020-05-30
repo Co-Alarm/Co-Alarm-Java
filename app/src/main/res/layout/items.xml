@@ -42,13 +42,4 @@
             android:textSize="13sp"
             android:textColor="@android:color/darker_gray"/>
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/Favorites"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@mipmap/ic_launcher"
-        />
-
-
 </LinearLayout>

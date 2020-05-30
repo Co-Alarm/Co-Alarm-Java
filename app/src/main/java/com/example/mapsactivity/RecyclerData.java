@@ -1,11 +1,12 @@
 package com.example.mapsactivity;
 
+import java.util.List;
+
 class FStore {
     String addr;
     String code;
     String name;
     String remain_stat;
-    boolean favorites;
 
     public String getAddr() {
         return addr;
@@ -35,8 +36,7 @@ class FStore {
         this.remain_stat = remain_stat;
     }
 
-    public boolean getFavorites(){return favorites;}
-    public void setFavorites(boolean temp){this.favorites = temp;}
-
-
+}
+class FSList{
+    List<FStore> fStoreList;
 }

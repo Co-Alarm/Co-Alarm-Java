@@ -15,7 +15,7 @@ import java.util.List;
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
     private final static String TAG = "RecyclerAdapter";
 
-    private List<FStore> mStore = null;
+    private List<FStore> mStore;
 
     //메인에서 sp 받아와서 객체로 변환하는 함수 호출, 처음 mStore가 불릴 때 저장
     RecyclerAdapter(List<FStore> list){
@@ -34,7 +34,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             marker = itemView.findViewById(R.id.imageView) ;
             name = itemView.findViewById(R.id.storeName) ;
             addr = itemView.findViewById(R.id.storeAddress) ;
-            star = itemView.findViewById(R.id.Favorites) ;
         }
     }
 
@@ -53,8 +52,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         FStore item = mStore.get(position) ;
         holder.name.setText(item.getName());
         holder.addr.setText(item.getAddr());
-        if(item.getFavorites()) holder.star.setBackgroundResource(R.drawable.ic_bookmark_black_24dp);
-        else holder.star.setBackgroundResource(R.drawable.ic_bookmark_border_black_24dp);
         switch (item.getRemain_stat()) {
             case "plenty":
                 holder.marker.setImageResource(R.drawable.ic_green_pin);
@@ -73,10 +70,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     @Override
     public int getItemCount() {
+        if(mStore == null) return 0;
         return mStore.size();
     }
-
-
-
-
 }

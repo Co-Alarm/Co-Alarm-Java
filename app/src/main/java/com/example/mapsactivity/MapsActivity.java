@@ -67,6 +67,7 @@ import java.util.concurrent.Future;
 import kotlin.TypeCastException;
 import kotlin.jvm.internal.Intrinsics;
 
+import static com.example.mapsactivity.PreferenceManager.getmStoreFromSP;
 import static com.example.mapsactivity.PreferenceManager.setmStoretoSP;
 
 public final class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, OnMarkerClickListener {
@@ -85,9 +86,9 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private ToggleButton fvb;
     private InputMethodManager imm;
 
-    RecyclerView mRecyclerView = null ;
+    RecyclerView mRecyclerView;
     List<FStore> mStore = new ArrayList<>();
-    RecyclerAdapter mAdapter = new RecyclerAdapter(mStore);
+    RecyclerAdapter mAdapter;
 
     Callable<List<Store>> taskSearch = new Callable<List<Store>>() {
         @Override
@@ -113,6 +114,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_maps);
         final EditText enterText = this.findViewById(R.id.entertext);
+        mRecyclerView = findViewById(R.id.recyclerview);
+        //clearall(this);
 
 //        final LinearLayout layout1 = (LinearLayout) findViewById(R.id.menu_bar);
 //
@@ -133,30 +136,25 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             Intrinsics.checkExpressionValueIsNotNull(fusedLocationClient, "LocationServices.getFuse…ationProviderClient(this)");
 
-            mRecyclerView = findViewById(R.id.recyclerview) ;
-            mRecyclerView.setAdapter(mAdapter);
-            mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-
             final SwipeRefreshLayout swipeRefreshLayout= findViewById(R.id.swipe_refresh_layout);
             swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
                 public void onRefresh() {
-                    for(FStore fStore: mStore){
-                        if(!fStore.getFavorites()){
-                            mStore.remove(fStore);
-                            Log.e(TAG,"refresing FV: "+fStore.name);
-                        }
-                    }
                     swipeRefreshLayout.setRefreshing(false);
                 }
             });
 
-            fvb = (ToggleButton) this.findViewById(R.id.btn_star);
+            fvb = this.findViewById(R.id.btn_star);
             fvb.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) { //map의 북마크 버튼 클릭하면 목록 visibility = true;
                     if(!fvb.isChecked()) {
-                        mAdapter.notifyDataSetChanged();
+                        mStore = getmStoreFromSP(MapsActivity.this);
+                        mAdapter = new RecyclerAdapter(mStore);
+                        mRecyclerView.setAdapter(mAdapter);
+                        mRecyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this));
+
+
                         swipeRefreshLayout.setVisibility(View.VISIBLE);
                         Log.e(TAG,"fuxx");
                     }
@@ -164,11 +162,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 }
             });
 
-
-
             imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             entertext = findViewById(R.id.entertext);
-
 
             ImageView imgNotice = findViewById(R.id.imgNotice);
 
@@ -372,32 +367,67 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         map.setOnInfoWindowLongClickListener(new GoogleMap.OnInfoWindowLongClickListener() {
             @Override
             public void onInfoWindowLongClick(final Marker marker) {
+                boolean isthere = false;
+                mStore = getmStoreFromSP(MapsActivity.this);
+                if(mStore != null) {
+                    Log.e(TAG,"널아님");
+                    for (FStore fstore : mStore) {
+                        if (fstore.getCode().equals(((Store)marker.getTag()).code)) {
+                            isthere = true;
+                            break;
+                        }
+                    }
+                }
+                if(!isthere) {
+                    AlertDialog.Builder oDialog = new AlertDialog.Builder(MapsActivity.this,
+                            android.R.style.Theme_DeviceDefault_Light_Dialog);
 
-                AlertDialog.Builder oDialog = new AlertDialog.Builder(MapsActivity.this,
-                        android.R.style.Theme_DeviceDefault_Light_Dialog);
+                    oDialog.setMessage("해당 약국을 즐겨찾기에 추가하시겠습니까?")
+                            .setTitle("즐겨찾기 추가")
+                            .setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Log.i("Dialog", "취소");
+                                    Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_LONG).show();
+                                }
+                            })
+                            .setNeutralButton("예", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // store 객체를 받아서 parameter로 넘김.
+                                    Log.e(TAG, "ㅇㅇㅇㅇㅇㅇㅇㅇㅇ : " + ((Store) marker.getTag()).getName());
+                                    addFV_Store((Store) marker.getTag());
 
-                oDialog.setMessage("해당 약국을 즐겨찾기에 추가하시겠습니까?")
-                        .setTitle("즐겨찾기 추가")
-                        .setPositiveButton("아니오", new DialogInterface.OnClickListener()
-                        {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Log.i("Dialog", "취소");
-                                Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_LONG).show();
-                            }
-                        })
-                        .setNeutralButton("예", new DialogInterface.OnClickListener()  {
-                            public void onClick(DialogInterface dialog, int which)
-                            {
-                                // store 객체를 받아서 parameter로 넘김.
-                                Log.e(TAG, "ㅇㅇㅇㅇㅇㅇㅇㅇㅇ : " + ((Store) marker.getTag()).getName());
-                                addFV_Store((Store)marker.getTag());
+                                    Toast.makeText(getApplicationContext(), "확인", Toast.LENGTH_LONG).show();
+                                }
+                            })
+                            .setCancelable(false) // 백버튼으로 팝업창이 닫히지 않도록 한다.
+                            .show();
+                    }
+                else {
+                    AlertDialog.Builder oDialog = new AlertDialog.Builder(MapsActivity.this,
+                            android.R.style.Theme_DeviceDefault_Light_Dialog);
 
-                                Toast.makeText(getApplicationContext(), "확인", Toast.LENGTH_LONG).show();
-                            }
-                        })
-                        .setCancelable(false) // 백버튼으로 팝업창이 닫히지 않도록 한다.
-                        .show();
+                    oDialog.setMessage("이미 즐겨찾기에 추가된 약국입니다. 즐겨찾기를 해제하시겠습니까?")
+                            .setTitle("즐겨찾기 해제")
+                            .setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Log.i("Dialog", "취소");
+                                    Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_LONG).show();
+                                }
+                            })
+                            .setNeutralButton("예", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // store 객체를 받아서 parameter로 넘김.
+                                    Log.e(TAG, "ㅇㅇㅇㅇㅇㅇㅇㅇㅇ : " + ((Store) marker.getTag()).getName());
+                                    deleteFV_Store((Store) marker.getTag());
+                                    Toast.makeText(getApplicationContext(), "확인", Toast.LENGTH_LONG).show();
+                                }
+                            })
+                            .setCancelable(false) // 백버튼으로 팝업창이 닫히지 않도록 한다.
+                            .show();
+                    isthere = false;
+                }
             }
         });
     }
@@ -523,17 +553,37 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
-    public void addFV_Store(Store store){
+    public FStore StoFS(Store store){
         FStore fStore = new FStore();
         fStore.setCode(store.code);
         fStore.setName(store.name);
         fStore.setAddr(store.addr);
         fStore.setRemain_stat(store.remain_stat);
-        fStore.setFavorites(true);
-        Log.e(TAG,"addFV:"+store.name);
+        return fStore;
+    }
 
-        mStore.add(fStore);
-        setmStoretoSP(this, mStore);
+    public void addFV_Store(Store store){
+        mStore = getmStoreFromSP(MapsActivity.this);
+        FStore fStore = new FStore();
+        fStore.setCode(store.code);
+        fStore.setName(store.name);
+        fStore.setAddr(store.addr);
+        fStore.setRemain_stat(store.remain_stat);
+        Log.e(TAG,"addFV:"+store.name);
+        if(mStore != null) {
+            Log.e(TAG,"널아님");
+            for (FStore fstore : mStore) {
+                if (fstore.getCode().equals(store.code)) {
+                    Log.e(TAG, store.name + ": 이미 즐겨찾기된 약국입니다.");
+                    return;
+                }
+            }
+        }
+        else{
+            mStore = new ArrayList<>();
+            mStore.add(fStore);
+            setmStoretoSP(this, mStore);
+        }
     }
 
     public void deleteFV_Store(Store store){
