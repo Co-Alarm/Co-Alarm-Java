@@ -13,7 +13,7 @@
     <string name="page_2_desc">이 지역에서 재검색 버튼과 검색 창에 \n 시 / 군 / 구 / 동을 입력한 후 엔터 !! \n 해당 위치 주변 약국의 재고를 확인할 수 있습니다.</string>
 
     <string name="page_3_title">약국 즐겨찾기</string>
-    <string name="page_3_desc">핀을 클릭하신 후, 정보를 길게 클릭해주세요. \n 당신이 자주 가는 약국을 즐겨찾기에 추가하실 수 있습니다 !! </string>
+    <string name="page_3_desc">핀을 클릭하신 후, 정보를 길게 클릭해주세요. \n 당신이 자주 가는 약국을 \n 즐겨찾기에 추가하실 수 있습니다 !! </string>
 
     <string name="page_4_title">마스크 구매 정보 제공</string>
     <string name="page_4_desc">물음표 아이콘을 클릭하시면 \n 마스크 구매 관련 정보를 \n 쉽게 확인하실 수 있습니다 !! </string>
