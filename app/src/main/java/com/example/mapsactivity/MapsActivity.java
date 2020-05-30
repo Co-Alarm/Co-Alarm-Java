@@ -1,6 +1,7 @@
 package com.example.mapsactivity;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -22,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -30,6 +32,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.gms.internal.maps.zzt;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
@@ -79,7 +82,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     RecyclerView mRecyclerView = null ;
-    List<FStore> mStore = Collections.emptyList();
+    List<FStore> mStore = new ArrayList<FStore>();
     RecyclerAdapter mAdapter = new RecyclerAdapter(mStore);
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -188,33 +191,33 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
             //세일세일세일세일세일세일세일세일
 
-            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            mRecyclerView = findViewById(R.id.recyclerview) ;
-            mRecyclerView.setAdapter(mAdapter);
-            mRecyclerView.setLayoutManager(new LinearLayoutManager(this)) ;
-            Button fvb = findViewById(R.id.Favorites);
-            fvb.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) { //map의 북마크 버튼 클릭하면 목록 visibility = true;
-                    if(mRecyclerView.getVisibility() == View.VISIBLE) mRecyclerView.setVisibility(View.INVISIBLE);
-                    else mRecyclerView.setVisibility(View.GONE);
-                }
-            });
-            final SwipeRefreshLayout swipeRefreshLayout= findViewById(R.id.swipe_refresh_layout);
-            swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    for(FStore fStore: mStore){
-                        if(!fStore.getFavorites()){
-                            mStore.remove(fStore);
-                            Log.e(TAG,"refresing FV: "+fStore.name);
-                        }
-                    }
-                    //새로 recyclerview를 업데이트해야되는지?
-                    swipeRefreshLayout.setRefreshing(false);
-                }
-            });
-            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//            mRecyclerView = findViewById(R.id.recyclerview) ;
+//            mRecyclerView.setAdapter(mAdapter);
+//            mRecyclerView.setLayoutManager(new LinearLayoutManager(this)) ;
+//            Button fvb = findViewById(R.id.Favorites);
+//            fvb.setOnClickListener(new OnClickListener() {
+//                @Override
+//                public void onClick(View v) { //map의 북마크 버튼 클릭하면 목록 visibility = true;
+//                    if(mRecyclerView.getVisibility() == View.VISIBLE) mRecyclerView.setVisibility(View.INVISIBLE);
+//                    else mRecyclerView.setVisibility(View.GONE);
+//                }
+//            });
+//            final SwipeRefreshLayout swipeRefreshLayout= findViewById(R.id.swipe_refresh_layout);
+//            swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+//                @Override
+//                public void onRefresh() {
+//                    for(FStore fStore: mStore){
+//                        if(!fStore.getFavorites()){
+//                            mStore.remove(fStore);
+//                            Log.e(TAG,"refresing FV: "+fStore.name);
+//                        }
+//                    }
+//                    //새로 recyclerview를 업데이트해야되는지?
+//                    swipeRefreshLayout.setRefreshing(false);
+//                }
+//            });
+//            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         }
     }
@@ -320,6 +323,38 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 }
             }
         });
+
+        map.setOnInfoWindowLongClickListener(new GoogleMap.OnInfoWindowLongClickListener() {
+            @Override
+            public void onInfoWindowLongClick(final Marker marker) {
+
+                AlertDialog.Builder oDialog = new AlertDialog.Builder(MapsActivity.this,
+                        android.R.style.Theme_DeviceDefault_Light_Dialog);
+
+                oDialog.setMessage("해당 약국을 즐겨찾기에 추가하시겠습니까?")
+                        .setTitle("즐겨찾기 추가")
+                        .setPositiveButton("아니오", new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Log.i("Dialog", "취소");
+                                Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_LONG).show();
+                            }
+                        })
+                        .setNeutralButton("예", new DialogInterface.OnClickListener()  {
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                // store 객체를 받아서 parameter로 넘김.
+                                Log.e(TAG, "ㅇㅇㅇㅇㅇㅇㅇㅇㅇ : " + ((Store) marker.getTag()).getName());
+                                addFV_Store((Store)marker.getTag());
+
+                                Toast.makeText(getApplicationContext(), "확인", Toast.LENGTH_LONG).show();
+                            }
+                        })
+                        .setCancelable(false) // 백버튼으로 팝업창이 닫히지 않도록 한다.
+                        .show();
+            }
+        });
     }
 
     public void onClick_gps(View v){
@@ -401,7 +436,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                                 markerOptions = newMarker(store, pinLocation, R.drawable.ic_gray);
                                 break;
                         }
-                        map.addMarker(markerOptions);
+                        map.addMarker(markerOptions).setTag(store);
                     }
                 });
             }
@@ -436,9 +471,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     //markerview의 북마크 버튼 클릭시 실행
     public void addFV_Store(Store store){
         FStore fStore = new FStore();
-        fStore.setAddr(store.addr);
         fStore.setCode(store.code);
-        fStore.setName(store.name);
         fStore.setFavorites(true);
         Log.e(TAG,"addFV:"+store.name);
 
@@ -458,14 +491,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
         Log.e(TAG,"if no logcat, no delete");
     }
-
-    //recyclerview에서 북마크 버튼을 클릭하면 실행
-//    public void deleteFV_FS(FStore fStore){
-//        mStore.remove(fStore);
-//        Log.e(TAG,"deleteFV: "+fStore.name);
-//    }
-    // >>>>>>>>Adapter에서 실행하게 변경함: 삭제해도 ㄱㅊ
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     @Override
     public boolean onMarkerClick(Marker marker) {
