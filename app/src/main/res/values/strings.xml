@@ -1,4 +1,20 @@
 <resources>
     <string name="app_name">코마</string>
     <string name="title_activity_maps">코마</string>
+
+    <string name="next">다음</string>
+    <string name="skip">건너띄기</string>
+    <string name="start">시작</string>
+
+    <string name="page_1_title">첫번째 페이지입니다.</string>
+    <string name="page_1_desc">첫번째 페이지 내용입니다.</string>
+
+    <string name="page_2_title">두번째 페이지입니다.</string>
+    <string name="page_2_desc">두번째 페이지 내용입니다.</string>
+
+    <string name="page_3_title">세번째 페이지입니다.</string>
+    <string name="page_3_desc">세번째 페이지 내용입니다.</string>
+
+    <string name="page_4_title">네번째 페이지입니다.</string>
+    <string name="page_4_desc">네번째 페이지 내용입니다.</string>
 </resources>
