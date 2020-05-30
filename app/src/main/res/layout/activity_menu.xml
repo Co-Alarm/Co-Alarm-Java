@@ -6,12 +6,12 @@
     android:layout_height="match_parent"
     android:id="@+id/menu"
     >
-<!--    // 빈 칸-->
+    <!--    // 빈 칸-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="8.5"></LinearLayout>
-<!--    //tap 크기-->
+    <!--    //tap 크기-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -118,7 +118,7 @@
         </LinearLayout>
 
     </LinearLayout>
-<!--    // 빈 칸-->
+    <!--    // 빈 칸-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
