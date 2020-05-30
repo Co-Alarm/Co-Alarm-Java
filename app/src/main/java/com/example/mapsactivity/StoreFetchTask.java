@@ -38,28 +38,24 @@ public class StoreFetchTask extends AsyncTask<Location,Void, List<Store>> {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        assert response != null;
         if (response.isSuccessful()) {
                 String body = null;
                 try {
+                    assert response.body() != null;
                     body = response.body().string();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 Gson gson = (new GsonBuilder()).create();
                 JsonParser parser = new JsonParser();
-                JsonElement rootObj = parser.parse(body)
+            assert body != null;
+            JsonElement rootObj = parser.parse(body)
                         .getAsJsonObject().get("stores");
-                System.out.println("--------rootObj---------");
-                System.out.println(rootObj.toString());
                 storesByGeo = gson.fromJson(rootObj, new TypeToken<List<Store>>() {
                 }.getType());
-                System.out.println("--------store[0]---------");
                 if (storesByGeo != null) {
                     Log.e(TAG, storesByGeo.get(0).getName());
-                }
-                else {
-                    System.out.println("--------데이터 없음---------");
-                    System.out.println("--------데이터 없음---------");
                 }
             }
             else {

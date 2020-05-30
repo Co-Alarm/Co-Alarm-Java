@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -85,7 +83,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static Location searchedLocation;
     private static Location currentLocation; //카메라 시점 현위치
     private static Location curLocation;
-    private static final int PERMISSION_REQUESTS = 1;
 
     private EditText entertext;
     private ToggleButton fvb;
@@ -100,16 +97,11 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     ImageView imgNotice;
     Button button;
     Button btnHelp;
-//    LinearLayout layout1;
-
-//    StoreFetchTask fTask = new StoreFetchTask();
-//    GeocodingFetchTask gTask = new GeocodingFetchTask();
-//    private static List<Store> temp;
-
     RecyclerView mRecyclerView;
     List<FStore> mStore = new ArrayList<>();
     RecyclerAdapter mAdapter;
 
+    //네트워크 기능: 콜백 task 정의 - 동기로 작동
     Callable<List<Store>> taskSearch = new Callable<List<Store>>() {
         @Override
         public List<Store> call() throws Exception {
@@ -165,7 +157,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             }
         });
 
-        //도움말 버튼 해결
+        //도움말 버튼
         imgNotice = findViewById(R.id.imgNotice);
 
         //anim 폴더의 애니메이션을 가져와서 준비
@@ -189,14 +181,11 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             }
         });
 
-        ///
-        ///
-        ///
         /// 초기 페이지
         SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
         boolean checkFirst = pref.getBoolean("checkFirst", false);
-        if (checkFirst == false) {
-            // 앱 최초 실행시 하고 싶은 작업
+        if (!checkFirst) {
+            // 앱 최초 실행 시
             SharedPreferences.Editor editor = pref.edit();
             editor.putBoolean("checkFirst", true);
             editor.commit();
@@ -205,20 +194,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             startActivity(intent);
             finish();
         } else {
-            // 최초 실행이 아닐때 진행할 작업
+            // 최초 실행이 아닐 때
         }
-
-// 세일 주석처리 
-//        layout1 = (LinearLayout) findViewById(R.id.menu_bar);
-//
-//        runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                /*변경하고 싶은 레이아웃의 파라미터 값을 가져 옴*/
-//                LinearLayout.LayoutParams plControl = (LinearLayout.LayoutParams) layout1.getLayoutParams();
-//
-//            }
-//        });
 
         Fragment fragment = this.getSupportFragmentManager().findFragmentById(R.id.map);
         if (fragment == null) {
@@ -229,6 +206,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             Intrinsics.checkExpressionValueIsNotNull(fusedLocationClient, "LocationServices.getFuse…ationProviderClient(this)");
 
+            //당겨서 새로고침
             final SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
             swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
@@ -242,10 +220,12 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 }
             });
 
+            //즐겨찾기 버튼
             fvb = this.findViewById(R.id.btnStar);
             fvb.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) { //map의 북마크 버튼 클릭하면 목록 visibility = true;
+                public void onClick(View v) {
+                    //map의 북마크 버튼 클릭하면 목록 visibility = true;
                     if (!fvb.isChecked()) {
                         mStore = getmStoreFromSP(mContext);
                         mAdapter = new RecyclerAdapter(mStore);
@@ -253,7 +233,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                         mRecyclerView.setAdapter(mAdapter);
                         mRecyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this));
                         swipeRefreshLayout.setVisibility(View.VISIBLE);
-                        Log.e(TAG, "fuxx");
                     } else swipeRefreshLayout.setVisibility(View.GONE);
                 }
             });
@@ -261,38 +240,35 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             entertext = findViewById(R.id.entertext);
 
-            ImageView imgNotice = findViewById(R.id.imgNotice);
-
+            //GeoCoding: 주소 >> 위도&경도 변환
+            //네트워크 기능 - 콜백 메소드 사용
             entertext.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 @Override
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                    switch (actionId) {
-                        case EditorInfo.IME_ACTION_SEARCH:
-                            inputtext = entertext.getText().toString();
-                            ExecutorService service = Executors.newSingleThreadExecutor();
-                            Future<Location> futurelc = service.submit(geocodingtask);
-                            try {
-                                searchedLocation = futurelc.get();
-                                Future<List<Store>> futurels = service.submit(taskSearch);
-                                Log.e(TAG, "searchedLocation");
-                                LatLng currentLatLng = new LatLng(searchedLocation.getLatitude(), searchedLocation.getLongitude());
-                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
-                                map.clear();
-                                placeMarkerOnMap(futurels.get());
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                        inputtext = entertext.getText().toString();
+                        ExecutorService service = Executors.newSingleThreadExecutor();
+                        Future<Location> futurelc = service.submit(geocodingtask);
+                        try {
+                            searchedLocation = futurelc.get();
+                            Future<List<Store>> futurels = service.submit(taskSearch);
+                            Log.e(TAG, "searchedLocation");
+                            LatLng currentLatLng = new LatLng(searchedLocation.getLatitude(), searchedLocation.getLongitude());
+                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
+                            map.clear();
+                            placeMarkerOnMap(futurels.get());
 
-                                System.out.println("fetchGeocoding 성공: " + searchedLocation.getLatitude() + " " + searchedLocation.getLongitude());
+                            System.out.println("fetchGeocoding 성공: " + searchedLocation.getLatitude() + " " + searchedLocation.getLongitude());
 
-                                //키보드 사라지는 기능 + Toast기능 + edittext 리셋 기능
-                                imm.hideSoftInputFromWindow(entertext.getWindowToken(), 0);
-                                Toast.makeText(getApplicationContext(), "\"" + inputtext + "\"" + " 검색결과입니다", Toast.LENGTH_LONG).show();
-                                entertext.setText("");
-                            } catch (ExecutionException | InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            break;
-                        default:
-                            // 기본 엔터키 동작
-                            return false;
+                            //키보드 사라지는 기능 + Toast기능 + edittext 리셋 기능
+                            imm.hideSoftInputFromWindow(entertext.getWindowToken(), 0);
+                            Toast.makeText(getApplicationContext(), "\"" + inputtext + "\"" + " 검색결과입니다", Toast.LENGTH_LONG).show();
+                            entertext.setText("");
+                        } catch (ExecutionException | InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else {// 기본 엔터키 동작
+                        return false;
                     }
                     return true;
                 }
@@ -300,11 +276,13 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
+    //OnMapReady()에서 호출, 권한 및 기능 확인
     private void setUpMap() {
         final LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
         final boolean enabled = Objects.requireNonNull(service)
                 .isProviderEnabled(LocationManager.GPS_PROVIDER);
 
+        //GPS 기능이 꺼져 있을 때
         if (!enabled) {
             AlertDialog.Builder builder2 = new AlertDialog.Builder(this);
             builder2.setTitle("GPS 알림")
@@ -327,13 +305,14 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                     });
             AlertDialog dialog2 = builder2.create();
             dialog2.show();
+            map.clear();
             CountDownTimer countDownTimer = new CountDownTimer(15000,1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
+                    //GPS 켜짐 감지
                     if(Objects.requireNonNull((LocationManager)getSystemService(LOCATION_SERVICE))
-                            .isProviderEnabled(LocationManager.GPS_PROVIDER)){ //GPS 켜짐 감지
+                            .isProviderEnabled(LocationManager.GPS_PROVIDER)){
                         Log.e(TAG,"GPS 켜짐 감지");
-                        map.clear();
                         fusedLocationClient = LocationServices.getFusedLocationProviderClient(MapsActivity.this);
                         fusedLocationClient.getLastLocation().addOnSuccessListener(MapsActivity.this, new OnSuccessListener<Location>() {
                             @Override
@@ -355,17 +334,17 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                                 placeMarkerOnMap(temp);
                             }
                         });
+                        cancel();
                     }
                 }
-
                 @Override
-                public void onFinish() { //GPS 켜지지 않고 15초 다 됨
+                public void onFinish() { //15초 동안 GPS 기능이 켜지지 않음
 
                 }
             }.start();
-            Log.e(TAG,"h12");
-
         }
+
+        //GPS 권한 허용
         if (ActivityCompat.checkSelfPermission(this, "android.permission.ACCESS_FINE_LOCATION") != 0) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("위치 접근 권한")
@@ -382,6 +361,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
+
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         map = googleMap;
@@ -394,8 +374,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setZoomControlsEnabled(false);
         map.getUiSettings().setMapToolbarEnabled(false);
-
-
         map.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener(){
             @Override
             public boolean onMyLocationButtonClick()
@@ -408,12 +386,11 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 List<Store> temp = null;
                 try {
                     temp = storeFetchTask.execute(curLocation).get();
-
-                } catch (ExecutionException | InterruptedException e) {
+                }
+                catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
                 placeMarkerOnMap(temp);
-
                 return false;
             }
         });
@@ -433,6 +410,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             }
         });
 
+        //네트워크 기능 - 콜백 메소드 사용
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(final Location lc) {
@@ -444,7 +422,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 ExecutorService service = Executors.newSingleThreadExecutor();
                 Future<List<Store>> future = service.submit(taskLast);
                 try {
-//                    temp = fTask.execute(lastLocation).get();
                     placeMarkerOnMap(future.get());
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
@@ -452,13 +429,14 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             }
         });
 
+        //window를 길게 누르면 실행: 해당 마커의 약국이 즐겨찾기 목록에 있는지 확인
         map.setOnInfoWindowLongClickListener(new GoogleMap.OnInfoWindowLongClickListener() {
             @Override
             public void onInfoWindowLongClick(final Marker marker) {
+                //mStore가 null이 아니고, 이미 즐겨찾기 목록에 있을 경우 isthere = true
                 boolean isthere = false;
                 mStore = getmStoreFromSP(mContext);
                 if(mStore != null) {
-                    Log.e(TAG,"널아님");
                     for (FStore fstore : mStore) {
                         if (fstore.getCode().equals(((Store) Objects.requireNonNull(marker.getTag())).code)) {
                             isthere = true;
@@ -466,10 +444,10 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                         }
                     }
                 }
+                //즐겨찾기 목록에 없을 경우: 즐겨찾기에 추가하시겠습니까?
                 if(!isthere) {
                     AlertDialog.Builder oDialog = new AlertDialog.Builder(MapsActivity.this,
                             android.R.style.Theme_DeviceDefault_Light_Dialog);
-
                     oDialog.setMessage("해당 약국을 즐겨찾기에 추가하시겠습니까?")
                             .setTitle("즐겨찾기 추가")
                             .setPositiveButton("아니오", new DialogInterface.OnClickListener() {
@@ -491,10 +469,10 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                             .setCancelable(false) // 백버튼으로 팝업창이 닫히지 않도록 한다.
                             .show();
                     }
+                //즐겨찾기 목록에 있을 경우: 즐겨찾기를 해제하시겠습니까?
                 else {
                     AlertDialog.Builder oDialog = new AlertDialog.Builder(MapsActivity.this,
                             android.R.style.Theme_DeviceDefault_Light_Dialog);
-
                     oDialog.setMessage("이미 즐겨찾기에 추가된 약국입니다. 즐겨찾기를 해제하시겠습니까?")
                             .setTitle("즐겨찾기 해제")
                             .setPositiveButton("아니오", new DialogInterface.OnClickListener() {
@@ -519,6 +497,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         });
     }
 
+    //GPS 기능과 권한 허용을 요청하기 전 기본 위치는 서울로 설정
     public void setDefaultLocation() {
         //디폴트 위치, Seoul
         LatLng DEFAULT_LOCATION = new LatLng(37.56, 126.97);
@@ -527,6 +506,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         map.moveCamera(cameraUpdate);
     }
 
+    //GPS 버튼 클릭시 현재 사용자의 위치에서 약국 검색, 마커 표시
     public void onClick_gps(View v){
         map.clear();
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -551,7 +531,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         });
     }
 
-    //현위치에서 재검색 버튼 기능
+    //현 위치에서 재검색 버튼 기능
     public void onClick_reset(View v){
         //이전 마커 지우기
         map.clear();
@@ -567,8 +547,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         placeMarkerOnMap(temp);
     }
 
-
-    //사용자 sgv파일 이용하기 위한 메소드
+    //sgv파일 이용하기 위한 메소드
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
         if (vectorDrawable == null) {
@@ -585,9 +564,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
     //핀 찍는 기능
     void placeMarkerOnMap(List<Store> storesByGeo) {
-        if(storesByGeo == null )Log.e(TAG,"thisisfucxingnull");
         if (storesByGeo != null) {
-            Log.e(TAG,"isnotnull");
             Log.e(TAG,"is: "+storesByGeo.get(0).getAddr());
             for (final Store store : storesByGeo) {
                 final LatLng pinLocation = new LatLng(store.getLat(), store.getLng());
@@ -618,14 +595,13 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
+    //마커 옵션 빌드 메소드
     public MarkerOptions newMarker(Store store, LatLng location, int icon) {
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(location);
         markerOptions.title(store.getName());
         markerOptions.snippet(remainState(store.remain_stat));
-        // MarkerOptions의 매개변수에 color를 넣어야함
         markerOptions.icon(bitmapDescriptorFromVector(getApplicationContext(), icon));
-
         return markerOptions;
     }
 
@@ -642,15 +618,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
-    public FStore StoFS(Store store){
-        FStore fStore = new FStore();
-        fStore.setCode(store.code);
-        fStore.setName(store.name);
-        fStore.setAddr(store.addr);
-        fStore.setRemain_stat(store.remain_stat);
-        return fStore;
-    }
-
+    //즐겨찾기 목록에 추가
     public void addFV_Store(Store store){
         mStore = getmStoreFromSP(mContext);
         FStore fStore = new FStore();
@@ -660,7 +628,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         fStore.setRemain_stat(store.remain_stat);
         Log.e(TAG,"addFV:"+store.name);
         if(mStore != null) {
-            Log.e(TAG,"널아님");
             for (FStore fstore : mStore) {
                 if (fstore.getCode().equals(store.code)) {
                     Log.e(TAG, store.name + ": 이미 즐겨찾기된 약국입니다.");
@@ -677,6 +644,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
+    //즐겨찾기 목록에서 삭제
     public void deleteFV_Store(Store store){
         String code = store.code;
 
@@ -690,54 +658,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         Log.e(TAG,"if no logcat, no delete");
 
         setmStoretoSP(this, mStore);
-    }
-
-
-    private String[] getRequiredPermissions() {
-        try {
-            PackageInfo info =
-                    this.getPackageManager()
-                            .getPackageInfo(this.getPackageName(), PackageManager.GET_PERMISSIONS);
-            String[] ps = info.requestedPermissions;
-            if (ps != null && ps.length > 0) {
-                return ps;
-            } else {
-                return new String[0];
-            }
-        } catch (Exception e) {
-            return new String[0];
-        }
-    }
-    private boolean allPermissionsGranted() {
-        for (String permission : getRequiredPermissions()) {
-            if (isPermissionGranted(this, permission)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void getRuntimePermissions() {
-        List<String> allNeededPermissions = new ArrayList<>();
-        for (String permission : getRequiredPermissions()) {
-            if (isPermissionGranted(this, permission)) {
-                allNeededPermissions.add(permission);
-            }
-        }
-        if (!allNeededPermissions.isEmpty()) {
-            ActivityCompat.requestPermissions(
-                    this, allNeededPermissions.toArray(new String[0]), PERMISSION_REQUESTS);
-        }
-    }
-
-    private static boolean isPermissionGranted(Context context, String permission) {
-        if (ContextCompat.checkSelfPermission(context, permission)
-                == PackageManager.PERMISSION_GRANTED) {
-            Log.i(TAG, "Permission granted: " + permission);
-            return false;
-        }
-        Log.i(TAG, "Permission NOT granted: " + permission);
-        return true;
     }
 
     private class SlidingPageAnimationListener implements Animation.AnimationListener{

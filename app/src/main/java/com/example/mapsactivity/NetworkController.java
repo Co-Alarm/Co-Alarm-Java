@@ -28,13 +28,12 @@ final class NetworkController {
 
     private static final String TAG = "NetworkController";
 
+    //네트워크 기능: Location을 받아 주변 약국 리스트 리턴
     @Nullable
     List<Store> fetchStore(final Location location) throws IOException {
         List<Store> storesByGeo = null;
-        System.out.println("데이터를 가져오는 중...");
         String url = "https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1";
         String query = "/storesByGeo/json?lat=" + location.getLatitude() + "&lng=" + location.getLongitude() + "&m=1000";
-        System.out.println("--------query---------\n" + url + query);
         OkHttpClient client = new OkHttpClient();
         Request.Builder builder = new Request.Builder().url(url + query).get();
         Request request = builder.build();
@@ -46,16 +45,10 @@ final class NetworkController {
             JsonParser parser = new JsonParser();
             JsonElement rootObj = parser.parse(body)
                     .getAsJsonObject().get("stores");
-            System.out.println("--------rootObj---------");
-            System.out.println(rootObj.toString());
             storesByGeo = gson.fromJson(rootObj, new TypeToken<List<Store>>() {
             }.getType());
-            System.out.println("--------store[0]---------");
             if (storesByGeo != null) {
                 Log.e(TAG, storesByGeo.get(0).getName());
-            } else {
-                System.out.println("--------데이터 없음---------");
-                System.out.println("--------데이터 없음---------");
             }
         } else {
             Log.e(TAG, "failed");
@@ -63,11 +56,11 @@ final class NetworkController {
         return storesByGeo;
     }
 
+    //네트워크 기능: 사용자가 입력한 검색어를 받아 해당 위치를 Location으로 리턴
     @Nullable
     final Location fetchGeocoding(@NotNull String address, @NotNull Location location) throws IOException {
         Intrinsics.checkParameterIsNotNull(address, "address");
         String text = URLEncoder.encode(address, "UTF-8");
-        System.out.println(text);
         URL url = new URL("https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=" + text);
         String clientId = "uyuvw49pig";
         String clientSecret = "BOJCfcK5klMMoKOgtb1LUhwlpCOsxPXZepAAE0Kb";
@@ -81,11 +74,6 @@ final class NetworkController {
         if (response.isSuccessful()) {
             if(response.body() ==null) return null;
             String body = response.body().string();
-            System.out.println("*********************");
-            System.out.println("*********************");
-            System.out.println("Success to execute request : " + body);
-            System.out.println("*********************");
-            System.out.println("*********************");
             Gson gson = (new GsonBuilder()).create();
             JsonParser parser = new JsonParser();
             JsonElement rootObj = parser.parse(body).getAsJsonObject().get("addresses");
@@ -95,11 +83,7 @@ final class NetworkController {
             ArrayList<Address> addresses = gson.fromJson(rootObj, type);
             location.setLatitude(Double.parseDouble(addresses.get(0).getY()));
             location.setLongitude(Double.parseDouble(addresses.get(0).getX()));
-            System.out.println("*********************");
-            System.out.println("*********************");
             Log.e(TAG,"address success: "+location.getLatitude()+", "+location.getLongitude());
-            System.out.println("*********************");
-            System.out.println("*********************");
         } else {
             Log.e(TAG, "fetchGeoCoding failed");
             return null;

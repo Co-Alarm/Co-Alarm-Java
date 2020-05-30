@@ -25,23 +25,18 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     private final static String TAG = "RecyclerAdapter";
     @SuppressLint("StaticFieldLeak")
     static Context mContext;
-    @SuppressLint("StaticFieldLeak")
-
-
     private List<FStore> mStore;
 
-    //메인에서 sp 받아와서 객체로 변환하는 함수 호출, 처음 mStore가 불릴 때 저장
     RecyclerAdapter(List<FStore> list){
         mStore = list;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+    class ViewHolder extends RecyclerView.ViewHolder{
         LinearLayout lv;
         ImageView marker;
         TextView name;
         TextView addr;
-
-        public ViewHolder(@NonNull View itemView) {
+        ViewHolder(@NonNull View itemView) {
             super(itemView);
             marker = itemView.findViewById(R.id.imageView) ;
             name = itemView.findViewById(R.id.storeName) ;
@@ -70,7 +65,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                             .setCancelable(false); // 백버튼으로 팝업창이 닫히지 않도록 한다.
                     AlertDialog dialog = oDialog.create();
                     dialog.show();
-
                     return false;
                 }
             });
@@ -82,7 +76,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Context context = parent.getContext() ;
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
+        assert inflater != null;
         View view = inflater.inflate(R.layout.items, parent, false);
         return new ViewHolder(view);
     }
@@ -106,7 +100,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 holder.marker.setImageResource(R.drawable.ic_gray_pin);
                 break;
         }
-
     }
 
     @Override

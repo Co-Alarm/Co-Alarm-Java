@@ -1,24 +1,22 @@
 package com.example.mapsactivity;
 
-import java.util.List;
-
 class FStore {
-    String addr;
-    String code;
-    String name;
-    String remain_stat;
+    private String addr;
+    private String code;
+    private String name;
+    private String remain_stat;
 
-    public String getAddr() {
+    String getAddr() {
         return addr;
     }
-    public void setAddr(String addr) {
+    void setAddr(String addr) {
         this.addr = addr;
     }
 
-    public String getCode() {
+    String getCode() {
         return code;
     }
-    public void setCode(String code) {
+    void setCode(String code) {
         this.code = code;
     }
 
@@ -29,14 +27,11 @@ class FStore {
         this.name = name;
     }
 
-    public String getRemain_stat() {
+    String getRemain_stat() {
         return remain_stat;
     }
-    public void setRemain_stat(String remain_stat) {
+    void setRemain_stat(String remain_stat) {
         this.remain_stat = remain_stat;
     }
 
-}
-class FSList{
-    List<FStore> fStoreList;
 }
