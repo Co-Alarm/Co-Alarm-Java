@@ -473,7 +473,9 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         FStore fStore = new FStore();
         fStore.setCode(store.code);
         fStore.setFavorites(true);
+
         Log.e(TAG,"addFV:"+store.name);
+        FileController.fileWriter(fStore);
 
         mStore.add(fStore);
     }
