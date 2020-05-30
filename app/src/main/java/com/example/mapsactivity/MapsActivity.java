@@ -140,8 +140,8 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         page = findViewById(R.id.page);
 
         //anim 폴더의 애니메이션을 가져와서 준비
-        tranlateLeftAnim = AnimationUtils.loadAnimation(this,R.anim.translate_left);
-        tranlateRightAnim = AnimationUtils.loadAnimation(this,R.anim.translate_right);
+        tranlateLeftAnim = AnimationUtils.loadAnimation(this, R.anim.translate_left);
+        tranlateRightAnim = AnimationUtils.loadAnimation(this, R.anim.translate_right);
 
         final FrameLayout.LayoutParams plControl = (FrameLayout.LayoutParams) page.getLayoutParams();
 
@@ -149,14 +149,15 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         SlidingPageAnimationListener animListener = new SlidingPageAnimationListener();
         tranlateLeftAnim.setAnimationListener(animListener);
         tranlateRightAnim.setAnimationListener(animListener);
-        button = findViewById(R.id.btnDraw); button.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                if(isPageOpen){
+        button = findViewById(R.id.btnDraw);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isPageOpen) {
                     page.startAnimation(tranlateRightAnim);
                     plControl.rightMargin = -500;
                     page.setLayoutParams(plControl);
-                }
-                else{
+                } else {
                     page.startAnimation(tranlateLeftAnim);
                     plControl.rightMargin = 0;
                     page.setLayoutParams(plControl);
@@ -168,19 +169,20 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         imgNotice = findViewById(R.id.imgNotice);
 
         //anim 폴더의 애니메이션을 가져와서 준비
-        fade_in = AnimationUtils.loadAnimation(this,R.anim.fade_in);
-        fade_out = AnimationUtils.loadAnimation(this,R.anim.fade_out);
+        fade_in = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+        fade_out = AnimationUtils.loadAnimation(this, R.anim.fade_out);
 
         //페이지 슬라이딩 이벤트가 발생했을때 애니메이션이 시작 됐는지 종료 됐는지 감지할 수 있다.
         ImageAnimationListener imgListener = new ImageAnimationListener();
         fade_in.setAnimationListener(imgListener);
         fade_out.setAnimationListener(imgListener);
-        btnHelp = findViewById(R.id.btnHelp); btnHelp.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                if(isImgOpen){
+        btnHelp = findViewById(R.id.btnHelp);
+        btnHelp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isImgOpen) {
                     imgNotice.startAnimation(fade_out);
-                }
-                else{
+                } else {
                     imgNotice.startAnimation(fade_in);
                     imgNotice.setVisibility(View.VISIBLE);
                 }
@@ -193,16 +195,16 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         /// 초기 페이지
         SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
         boolean checkFirst = pref.getBoolean("checkFirst", false);
-        if(checkFirst==false){
+        if (checkFirst == false) {
             // 앱 최초 실행시 하고 싶은 작업
             SharedPreferences.Editor editor = pref.edit();
-            editor.putBoolean("checkFirst",true);
+            editor.putBoolean("checkFirst", true);
             editor.commit();
 
             Intent intent = new Intent(MapsActivity.this, TutorialActivity.class);
             startActivity(intent);
             finish();
-        }else{
+        } else {
             // 최초 실행이 아닐때 진행할 작업
         }
 
@@ -227,7 +229,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             Intrinsics.checkExpressionValueIsNotNull(fusedLocationClient, "LocationServices.getFuse…ationProviderClient(this)");
 
-            final SwipeRefreshLayout swipeRefreshLayout= findViewById(R.id.swipe_refresh_layout);
+            final SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
             swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
                 public void onRefresh() {
@@ -244,16 +246,15 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             fvb.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) { //map의 북마크 버튼 클릭하면 목록 visibility = true;
-                    if(!fvb.isChecked()) {
+                    if (!fvb.isChecked()) {
                         mStore = getmStoreFromSP(mContext);
                         mAdapter = new RecyclerAdapter(mStore);
                         mAdapter.notifyDataSetChanged();
                         mRecyclerView.setAdapter(mAdapter);
                         mRecyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this));
                         swipeRefreshLayout.setVisibility(View.VISIBLE);
-                        Log.e(TAG,"fuxx");
-                    }
-                    else swipeRefreshLayout.setVisibility(View.GONE);
+                        Log.e(TAG, "fuxx");
+                    } else swipeRefreshLayout.setVisibility(View.GONE);
                 }
             });
 
@@ -267,10 +268,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                     switch (actionId) {
                         case EditorInfo.IME_ACTION_SEARCH:
-                            System.out.println("************************************");
-
                             inputtext = entertext.getText().toString();
-                            System.out.println("************************************" + inputtext);
                             ExecutorService service = Executors.newSingleThreadExecutor();
                             Future<Location> futurelc = service.submit(geocodingtask);
                             try {
@@ -300,20 +298,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 }
             });
         }
-
-//        //레이아웃을 위에 겹쳐서 올리는 부분
-//        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//        //레이아웃 객체생성
-//        LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.activity_menu, null);
-//
-//        //레이아웃 위에 겹치기
-//        LinearLayout.LayoutParams paramll = new LinearLayout.LayoutParams
-//                (LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT);
-//        addContentView(ll, paramll);
-//
-//        if (!allPermissionsGranted()) {
-//            getRuntimePermissions();
-//        }
     }
 
     private void setUpMap() {
