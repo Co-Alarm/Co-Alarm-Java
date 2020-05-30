@@ -16,48 +16,92 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="horizontal"
-        android:layout_weight="0.7">
+        android:layout_weight="1">
         <LinearLayout
-            android:layout_width="269dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:paddingBottom="10dp">
+            android:layout_weight="3.2"
+            >
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="300dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="7"
+                >
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="3"
+                android:background="@drawable/gps_background"
+                >
+                <ImageView
+                    android:id="@+id/imgGps"
+                    android:onClick="onClick_gps"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:layout_marginLeft="10px"
+                    android:layout_marginRight="2px"
+                    android:layout_marginTop="15px"
+                    android:layout_marginBottom="1px"
+                    android:background="@drawable/ic_gps"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="7"
+                >
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            >
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:paddingBottom="10dp"
-            android:background="#FFFFFF"
+
+            android:background="@drawable/menubar_background"
             android:layout_marginRight="0dp"
             android:id="@+id/menu_bar">
 
             <!--    메뉴바 -->
-
             <ToggleButton
                 android:id="@+id/btn_tap"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginLeft="10dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginLeft="30dp"
                 android:layout_marginTop="15dp"
                 android:layout_marginRight="30dp"
                 android:layout_marginBottom="15dp"
                 android:background="@drawable/ic_menu"
                 android:textOff=""
-                android:textOn=""
-                android:textSize="30dp" />
+                android:textOn="" />
+
 
             <!--    스타 그림 -->
             <ToggleButton
                 android:id="@+id/btn_star"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_marginTop="15dp"
                 android:layout_marginRight="30dp"
-                android:layout_marginBottom="60dp"
                 android:background="@drawable/ic_filled_star"
                 android:textOff=""
-                android:textOn=""/>
+                android:textOn="" />
 
             <!--    물음표 그림 -->
             <ToggleButton
@@ -65,7 +109,8 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_marginRight="30dp"
-                android:layout_marginBottom="60dp"
+                android:layout_marginBottom="15dp"
+                android:layout_marginTop="15dp"
                 android:background="@drawable/ic_help"
                 android:textOff=""
                 android:textOn=""/>
