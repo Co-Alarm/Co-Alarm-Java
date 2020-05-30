@@ -33,6 +33,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -92,12 +93,13 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private EditText entertext;
     private InputMethodManager imm;
     private ImageView imgNotice;
-    LinearLayout layout1;
-
-
-
-
-
+    boolean isPageOpen = false;
+    Animation tranlateLeftAnim;
+    Animation tranlateRightAnim;
+    LinearLayout page;
+    Button button;
+    Button btnHelp;
+//    LinearLayout layout1;
 
 //    StoreFetchTask fTask = new StoreFetchTask();
 //    GeocodingFetchTask gTask = new GeocodingFetchTask();
@@ -129,7 +131,33 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         this.setContentView(R.layout.activity_maps);
         final EditText enterText = this.findViewById(R.id.entertext);
 
-        //        최초 실행 여부를 판단 ->>>
+        page = findViewById(R.id.page);
+
+        //anim 폴더의 애니메이션을 가져와서 준비
+        tranlateLeftAnim = AnimationUtils.loadAnimation(this,R.anim.translate_left);
+        tranlateRightAnim = AnimationUtils.loadAnimation(this,R.anim.translate_right);
+
+        final FrameLayout.LayoutParams plControl = (FrameLayout.LayoutParams) page.getLayoutParams();
+
+        //페이지 슬라이딩 이벤트가 발생했을때 애니메이션이 시작 됐는지 종료 됐는지 감지할 수 있다.
+        SlidingPageAnimationListener animListener = new SlidingPageAnimationListener();
+        tranlateLeftAnim.setAnimationListener(animListener);
+        tranlateRightAnim.setAnimationListener(animListener);
+        button = findViewById(R.id.btnDraw); button.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if(isPageOpen){
+                    page.startAnimation(tranlateRightAnim);
+                    plControl.rightMargin = -500;
+                    page.setLayoutParams(plControl);
+                }
+                else{
+                    page.startAnimation(tranlateLeftAnim);
+                    plControl.rightMargin = 0;
+                    page.setLayoutParams(plControl);
+                }
+            }
+        });
+
 //        최초 실행 여부를 판단 ->>>
 //        SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
 //        boolean checkFirst = pref.getBoolean("checkFirst", false);
@@ -146,24 +174,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 //            // 최초 실행이 아닐때 진행할 작업
 //        }
 //          <<<-
-//          <<<-
 
-        //        최초 실행 여부를 판단 ->>>
-//        SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
-//        boolean checkFirst = pref.getBoolean("checkFirst", false);
-//        if(checkFirst==false){
-//            // 앱 최초 실행시 하고 싶은 작업
-//            SharedPreferences.Editor editor = pref.edit();
-//            editor.putBoolean("checkFirst",true);
-//            editor.commit();
-//
-//            Intent intent = new Intent(MapsActivity.this, TutorialActivity.class);
-//            startActivity(intent);
-//            finish();
-//        }else{
-//            // 최초 실행이 아닐때 진행할 작업
-//        }
-//          <<<-
 
 // 세일 주석처리 
 //        layout1 = (LinearLayout) findViewById(R.id.menu_bar);
@@ -222,7 +233,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 //            });
 
 
-            imgNotice = findViewById(R.id.imgNotice);
 
 //            final ToggleButton tb3 =
 //                    (ToggleButton) this.findViewById(R.id.btn_help);
@@ -294,19 +304,19 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
         }
 
-        //레이아웃을 위에 겹쳐서 올리는 부분
-        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        //레이아웃 객체생성
-        LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.activity_menu, null);
-
-        //레이아웃 위에 겹치기
-        LinearLayout.LayoutParams paramll = new LinearLayout.LayoutParams
-                (LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT);
-        addContentView(ll, paramll);
-
-        if (!allPermissionsGranted()) {
-            getRuntimePermissions();
-        }
+//        //레이아웃을 위에 겹쳐서 올리는 부분
+//        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//        //레이아웃 객체생성
+//        LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.activity_menu, null);
+//
+//        //레이아웃 위에 겹치기
+//        LinearLayout.LayoutParams paramll = new LinearLayout.LayoutParams
+//                (LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT);
+//        addContentView(ll, paramll);
+//
+//        if (!allPermissionsGranted()) {
+//            getRuntimePermissions();
+//        }
     }
 
 
@@ -410,6 +420,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         map.getUiSettings().setCompassEnabled(false);
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setZoomControlsEnabled(false);
+        map.getUiSettings().setMapToolbarEnabled(false);
 
 
         map.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener(){
@@ -527,9 +538,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         placeMarkerOnMap(temp);
     }
 
-    public void onClick_notice(View v){
-
-    }
 
     //사용자 sgv파일 이용하기 위한 메소드
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
@@ -699,6 +707,27 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         Log.i(TAG, "Permission NOT granted: " + permission);
         return true;
     }
+
+    private class SlidingPageAnimationListener implements Animation.AnimationListener{
+        @Override public void onAnimationStart(Animation animation) {
+
+        }
+        public void onAnimationEnd(Animation animation){
+            if(isPageOpen){
+                page.setVisibility(View.VISIBLE);
+                button.setText("");
+                isPageOpen = false;
+            }
+            else{
+                button.setText("");
+                isPageOpen = true;
+            }
+        }
+        @Override public void onAnimationRepeat(Animation animation) {
+
+        }
+    }
+
 
     @Override
     public boolean onMarkerClick(Marker marker) {
