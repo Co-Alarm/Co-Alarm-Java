@@ -3,7 +3,10 @@ package com.example.mapsactivity;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Bitmap.Config;
@@ -11,6 +14,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -18,6 +22,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +32,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
@@ -305,7 +314,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         /* 마커 관련 코드 */
-        markerView = getLayoutInflater().inflate(R.layout.marker_view, null);
 
         map = googleMap;
         Log.e(TAG,"hi");
@@ -319,9 +327,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             @Override
             public boolean onMyLocationButtonClick()
             {
-//                View b = findViewById(R.id.btn_reset);
-//                b.setVisibility(View.GONE);
-
                 //이전 마커 지우기
                 map.clear();
 
