@@ -1,6 +1,8 @@
 package com.example.mapsactivity;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -418,17 +420,26 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     // 애니메이션 메소드
-    public void anim (View v)
+    public void anim (final View v)
     {
         if(v.getVisibility() == v.GONE) {
+
             v.setAlpha(0.0f);
             v.setVisibility(View.VISIBLE);
             v.animate().alpha(1.0f).setDuration(600);
+            System.out.println("재욱아 재우가앙아ㅏ아아ㅏ");
         }
-        else
+        else if((v.getVisibility() == v.VISIBLE))
         {
-            v.animate().alpha(0.0f).setDuration(600);
-            v.setVisibility(View.GONE);
+            System.out.println("세일아 세일아아아ㅏㅇ");
+            v.animate().alpha(0.0f).setDuration(600).setListener((new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    v.setVisibility(View.GONE);
+
+                }
+            }));
         }
 
     }
