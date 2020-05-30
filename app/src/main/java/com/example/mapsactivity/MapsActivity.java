@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -31,6 +32,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -45,6 +47,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -67,12 +70,10 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private static Location currentLocation; //카메라 시점 현위치
     private static Location curLocation;
 
+    public static Context mContext = null;
     private EditText entertext;
     private InputMethodManager imm;
     private static View markerView;
-    MarkerItemAdapter markerItemAdapter;
-
-
 
 //    StoreFetchTask fTask = new StoreFetchTask();
 //    GeocodingFetchTask gTask = new GeocodingFetchTask();
@@ -149,21 +150,13 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                             ExecutorService service = Executors.newSingleThreadExecutor();
                             Future<Location> futurelc = service.submit(geocodingtask);
                             try {
-
-//                        searchedLocation = gTask.execute(inputtext).get();
-//                    } catch (ExecutionException | InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                    System.out.println("fetchGeocoding 성...공?"+ searchedLocation.getLatitude() +" "+ searchedLocation.getLongitude());
-//                    onLocationChanged(searchedLocation);
-
                                 searchedLocation = futurelc.get();
                                 Future<List<Store>> futurels = service.submit(taskSearch);
                                 Log.e(TAG, "searchedLocation");
                                 LatLng currentLatLng = new LatLng(searchedLocation.getLatitude(), searchedLocation.getLongitude());
                                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16f));
                                 map.clear();
-                                placeMarkerOnMap(futurels.get());
+                                placeMarkerOnMap(map, futurels.get());
 
                                 System.out.println("fetchGeocoding 성공: " + searchedLocation.getLatitude() + " " + searchedLocation.getLongitude());
 
@@ -218,13 +211,12 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
     @Override
     public void onMapReady(final GoogleMap googleMap) {
-        /* 마커 관련 코드 */
-        markerView = getLayoutInflater().inflate(R.layout.marker_view, null);
+//        /* 마커 관련 코드 */
+//        markerView = getLayoutInflater().inflate(R.layout.marker_view, null);
 
         map = googleMap;
         Log.e(TAG,"hi");
         map.getUiSettings().setZoomControlsEnabled(true);
-        map.setOnMarkerClickListener(this);
         setUpMap();
         map.setMyLocationEnabled(true);
         map.getUiSettings().setCompassEnabled(false);
@@ -236,7 +228,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             {
 //                View b = findViewById(R.id.btn_reset);
 //                b.setVisibility(View.GONE);
-
                 //이전 마커 지우기
                 map.clear();
 
@@ -331,7 +322,7 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     //사용자 sgv파일 이용하기 위한 메소드
-    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
+    private static BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
         if (vectorDrawable == null) {
             Intrinsics.throwNpe();
@@ -348,50 +339,49 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     //핀 찍는 기능
     void placeMarkerOnMap(final GoogleMap map, List<Store> storesByGeo) {
         /* 마커 관련 코드 */
-        if(storesByGeo == null )Log.e(TAG,"thisisfucxingnull");
+        if (storesByGeo == null) Log.e(TAG, "thisisfucxingnull");
         if (storesByGeo != null) {
-            Log.e(TAG,"isnotnull");
-            Log.e(TAG,"is: "+storesByGeo.get(0).getAddr());
+            Log.e(TAG, "isnotnull");
+            Log.e(TAG, "is: " + storesByGeo.get(0).getAddr());
             for (final Store store : storesByGeo) {
                 final LatLng pinLocation = new LatLng(store.getLat(), store.getLng());
                 final String remain = store.getRemain_stat();
-                if(remain == null)
+                if (remain == null)
                     continue;
-
                 this.runOnUiThread(new Runnable() {
                     public final void run() {
-                        final MarkerOptions markerOptions = new MarkerOptions();
+                        final MarkerOptions markerOptions;
                         //녹색(100개 이상)/노랑색(30~99개)/빨강색(2~29개)/회색(0~1)개
                         switch (remain) {
                             case "plenty":
-                                markerOptions.position(pinLocation);
-                                //MarkerOptions의 매개변수에 color를 넣어야함
-                                markerOptions.icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_green));
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_green);
                                 break;
                             case "some":
-                                markerOptions.position(pinLocation);
-                                //MarkerOptions의 매개변수에 color를 넣어야함
-                                markerOptions.icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_yellow));
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_yellow);
                                 break;
                             case "few":
-                                markerOptions.position(pinLocation);
-                                //MarkerOptions의 매개변수에 color를 넣어야함
-                                markerOptions.icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_red));
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_red);
                                 break;
                             default:
-                                markerOptions.position(pinLocation);
-                                //MarkerOptions의 매개변수에 color를 넣어야함
-                                markerOptions.icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_gray));
+                                markerOptions = newMarker(store, pinLocation, R.drawable.ic_gray);
                                 break;
                         }
-                        markerItemAdapter = new MarkerItemAdapter(markerView, store.getName(), remainState(remain));
-                        map.setInfoWindowAdapter(markerItemAdapter);
-                        Log.e(TAG, "in runonuithread : " + store.getName());
-                        map.addMarker(markerOptions).showInfoWindow();
+                        map.addMarker(markerOptions);
                     }
                 });
             }
         }
+    }
+
+    public MarkerOptions newMarker(Store store, LatLng location, int icon) {
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(location);
+        markerOptions.title(store.getName());
+        markerOptions.snippet(remainState(store.remain_stat));
+        // MarkerOptions의 매개변수에 color를 넣어야함
+        markerOptions.icon(bitmapDescriptorFromVector(getApplicationContext(), icon));
+
+        return markerOptions;
     }
 
     public static String remainState (String remain) {
@@ -406,38 +396,6 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
                 return "0~1개";
         }
     }
-
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-        return false;
-    }
-    //onclick_reset이랑 같은 기능을 하는 것 같아서 주석처리
-//    public void onLocationChanged(Location location) {
-//        Log.e(TAG,"ChangedonSucceess");
-//        StoreFetchTask storeFetchTask = new StoreFetchTask();
-//
-//        // 기존 맵 초기화
-//        map.clear();
-//
-//        // 새로운 위치 객체 설정
-//        LatLng changeLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-//
-//        Location changeLocation = new Location("");
-//        changeLocation.setLongitude(changeLatLng.longitude);
-//        changeLocation.setLatitude(changeLatLng.latitude);
-//
-//        // 변경되는 위치로 이동
-//        map.animateCamera(CameraUpdateFactory.newLatLngZoom(changeLatLng, 16f));
-//
-//        // JSON 파싱
-//        List<Store> temp = null;
-//        try {
-//            temp = storeFetchTask.execute(changeLocation).get();
-//        } catch (ExecutionException | InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        placeMarkerOnMap(temp);
-//    }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
