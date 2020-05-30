@@ -9,14 +9,17 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Bitmap.Config;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.Layout;
 import android.util.Log;
 import android.util.TimeUtils;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.animation.Animation;
@@ -26,6 +29,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -78,6 +83,10 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
     private EditText entertext;
     private InputMethodManager imm;
     private ImageView imgNotice;
+    LinearLayout layout1;
+
+
+
 
 
 
@@ -111,6 +120,18 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
         this.setContentView(R.layout.activity_maps);
         final EditText enterText = this.findViewById(R.id.entertext);
 
+
+        layout1 = (LinearLayout) findViewById(R.id.menu_bar);
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                /*변경하고 싶은 레이아웃의 파라미터 값을 가져 옴*/
+                LinearLayout.LayoutParams plControl = (LinearLayout.LayoutParams) layout1.getLayoutParams();
+
+            }
+        });
+
         Fragment fragment = this.getSupportFragmentManager().findFragmentById(R.id.map);
         if (fragment == null) {
             throw new TypeCastException("null cannot be cast to non-null type com.google.android.gms.maps.SupportMapFragment");
@@ -125,37 +146,54 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             entertext = findViewById(R.id.entertext);
 
-            //토글버튼 기능 ON/OFF
-            final ToggleButton tb2 =
-                    (ToggleButton) this.findViewById(R.id.btn_search2);
-            tb2.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(tb2.isChecked()) {
-                        anim(entertext);
-                    }
-                    else{
-                        anim(entertext);
+//            final ToggleButton btn_menu = (ToggleButton) this.findViewById(R.id.btn_tap);
+//            btn_menu.setOnClickListener(new OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    if(btn_menu.isChecked()) {
+//                        /*해당 margin값 변경*/
+//                        plControl.rightMargin = 0;
+//                        /*변경된 값의 파라미터를 해당 레이아웃 파라미터 값에 셋팅*/
+//                        menu.setLayoutParams(plControl);
+//                    }
+//                }
+//            });
 
-                    } // end if
-                } // end onClick()
-            });
+
+//            //토글버튼 기능 ON/OFF
+//            final ToggleButton tb2 =
+//                    (ToggleButton) this.findViewById(R.id.btn_search2);
+//            tb2.setOnClickListener(new OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    if(tb2.isChecked()) {
+//                        anim(entertext);
+//                    }
+//                    else{
+//                        anim(entertext);
+//
+//                    } // end if
+//                } // end onClick()
+//            });
+
+
 
             imgNotice = findViewById(R.id.imgNotice);
 
-            final ToggleButton tb3 =
-                    (ToggleButton) this.findViewById(R.id.btn_help);
-            tb3.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(tb3.isChecked()) {
-                        anim(imgNotice);
-                    }
-                    else{
-                        anim(imgNotice);
-                    } // end if
-                } // end onClick()
-            });
+//            final ToggleButton tb3 =
+//                    (ToggleButton) this.findViewById(R.id.btn_help);
+//            tb3.setOnClickListener(new OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    if(tb3.isChecked()) {
+//                        anim(imgNotice);
+//                    }
+//                    else{
+//                        anim(imgNotice);
+//                    } // end if
+//                } // end onClick()
+//            });
+
 
             //
             entertext.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -211,7 +249,18 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
             //세일세일세일세일세일세일세일세일
 
         }
+
+        //레이아웃을 위에 겹쳐서 올리는 부분
+        LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        //레이아웃 객체생성
+        LinearLayout ll = (LinearLayout)inflater.inflate(R.layout.activity_menu, null);
+
+        //레이아웃 위에 겹치기
+        LinearLayout.LayoutParams paramll = new LinearLayout.LayoutParams
+                (LinearLayout.LayoutParams.FILL_PARENT,LinearLayout.LayoutParams.FILL_PARENT);
+        addContentView(ll, paramll);
     }
+
 
     private void setUpMap() {
 
@@ -324,20 +373,24 @@ public final class MapsActivity extends AppCompatActivity implements OnMapReadyC
 
     public void onClick_gps(View v){
         map.clear();
-        LatLng latLng = new LatLng(curLocation.getLatitude(), curLocation.getLongitude());
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16);
-        map.animateCamera(cameraUpdate);
-
-        // JSON 파싱, 마커생성
-        StoreFetchTask storeFetchTask = new StoreFetchTask();
-        List<Store> temp = null;
-        try {
-            temp = storeFetchTask.execute(curLocation).get();
-
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        placeMarkerOnMap(temp);
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                curLocation = location;
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16);
+                map.animateCamera(cameraUpdate);
+                // JSON 파싱, 마커생성
+                StoreFetchTask storeFetchTask = new StoreFetchTask();
+                List<Store> temp = null;
+                try {
+                    temp = storeFetchTask.execute(location).get();
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+                placeMarkerOnMap(temp);
+            }
+        });
     }
 
     //현위치에서 재검색 버튼 기능
