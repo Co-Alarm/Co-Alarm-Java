@@ -16,4 +16,4 @@ Co-ma Java Language Ver (코로나 마스크 알림이 app)
 
 ![image](https://user-images.githubusercontent.com/59859965/175235389-324bdf6a-f7d1-404b-b0de-3d2b77740388.png)
 
-- 마스크 공급 완화로 API 중단 상태
+- 마스크 공급 완화로 API 중단
